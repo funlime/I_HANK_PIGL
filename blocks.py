@@ -238,8 +238,8 @@ def accounting(par,ini,ss,
     NFA_lag = lag(ini.NFA,NFA)
     
     # ooo. Current account
-    CA[:] = NX + lag_i * NFA_lag# Current acount net exports this period should 
-                # CA[:] = NX + iF_s_lag * NFA_lag*(E/E_lag)# Current acount net exports this period 
+    # CA[:] = NX + lag_i * NFA_lag# Current acount net exports this period should 
+    CA[:] = NX + iF_s_lag * NFA_lag*(E/E_lag)# Current acount net exports this period 
     
     # oooo. Walras law check
     Walras[:] = (NFA-NFA_lag) - CA
