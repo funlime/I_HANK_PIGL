@@ -195,7 +195,7 @@ def find_ss(model, do_print=False):
         # Optimizer
         res = optimize.root(obj_ss, x0, args=(model,), method='hybr')  # or another method like 'lm', 'broyden1', etc.
         # obj_ss[res.x]
-        print(res.x)
+        print(f'Share of domestic workers in tradable sector = {res.x[1]:.2f}')
     except Exception as e:
         print(f"Failed: {e}")
 
@@ -222,6 +222,10 @@ def find_ss(model, do_print=False):
         print(f'{ss.clearing_YNT = :12.8f}')
         print(f'{ss.G = :.3f}')
         print(f'{ss.NFA = :.3f}')
+
+
+
+
 
 def find_ss_new(model, do_print=False):
 

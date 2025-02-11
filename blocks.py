@@ -101,7 +101,7 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB):
 def government(par,ini,ss,
                PNT,NTH,NNT,G,B,tau, WTH, WNT, i):
 
-    for t in range(par.T):
+    for t in range(par.T): 
     
     # a. nominal interest on last period bonds and last period nominal bonds
         lag_i = prev(i,t,ini.i)  
