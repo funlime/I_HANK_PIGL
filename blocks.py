@@ -121,11 +121,11 @@ def government(par,ini,ss,
 
 @nb.njit
 def HH_pre(par,ini,ss,
-           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT): # CHange inc_TH/inc_NT to w tilde
+           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH): # CHange inc_TH/inc_NT to w tilde
     
     # a. after tax real wage in terms of non-tradable goods
-    inc_NT[:] = (WNT*(1-tau))/PNT
-    inc_TH[:] = (WTH*(1-tau))/PNT
+    inc_NT[:] = (NNT*WNT*(1-tau))/PNT
+    inc_TH[:] = (NTH*WTH*(1-tau))/PNT
 
     # b. relative prices
     p[:] = PNT/PT
@@ -140,7 +140,7 @@ def HH_pre(par,ini,ss,
 @nb.njit
 def HH_post(par,ini,ss,
                 C_hh,PT,PNT,P,PTH,PF,M_s,PTH_s,PF_s,
-                CT,CNT,CTF,CTH,CTH_s, CT_hh, CNT_hh, CTF_hh, CTH_hh, E_hh, E, A, A_hh):
+                CT,CNT,CTF,CTH,CTH_s, CT_hh, CNT_hh, CTF_hh, CTH_hh, E_hh, E, A, A_hh, EX):
 
     # a bit redundant to change names from _hh
 
@@ -153,7 +153,7 @@ def HH_post(par,ini,ss,
     CTH[:] = CTH_hh
 
     # c. Nominal expnediture  
-    E[:] = E_hh * PNT
+    EX[:] = E_hh * PNT
     A[:] = A_hh * PNT
 
     # c. foreign - home tradeable
@@ -213,7 +213,7 @@ def market_clearing(par,ini,ss,
 @nb.njit
 def accounting(par,ini,ss,
                PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra,
-               GDP,NX,CA,NFA,Walras, E, iF_s, i):
+               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX):
     
 
     # not in use     
@@ -228,7 +228,7 @@ def accounting(par,ini,ss,
     GDP[:] = PTH*YTH+PNT*YNT 
 
     # c. Net exports
-    NX[:] = GDP-E-PNT*G # Total production (nominal) - houhsolds private expenditure - Government expenditure
+    NX[:] = GDP-EX-PNT*G # Total production (nominal) - houhsolds private expenditure - Government expenditure
 
     # d. NFA
     # o. Nominal foreign assets

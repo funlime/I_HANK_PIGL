@@ -114,10 +114,6 @@ def obj_ss(x, model, do_print=False):
 
 
 
-    ss.wTH = ss.WTH /ss.PNT # w_tilde deflated with PNT
-    ss.wNT = ss.WNT /ss.PNT
-    
-
     # c. household 
     ss.tau = par.tau_ss
     ss.inc_TH = (1-ss.tau)*ss.wTH*ss.NTH
@@ -128,7 +124,7 @@ def obj_ss(x, model, do_print=False):
     model.simulate_hh_ss(do_print=do_print)
 
     # Nominal values
-    ss.E = ss.E_hh*ss.PNT
+    ss.EX = ss.E_hh*ss.PNT
     ss.A = ss.A_hh*ss.PNT
 
     # d. government bonds (nominal)
@@ -164,13 +160,18 @@ def obj_ss(x, model, do_print=False):
 
     # zero net foreign assets
     ss.GDP = ss.PTH*ss.YTH + ss.PNT*ss.YNT
-    ss.NX = ss.GDP - ss.E - ss.PNT*ss.G 
+    ss.NX = ss.GDP - ss.EX - ss.PNT*ss.G 
     ss.NFA = ss.A - ss.B
     ss.CA = ss.NX + (1+ss.i)*ss.NFA
     ss.Walras = ss.CA
 
     # g. disutility of labor for NKWPCs
     # Which real wage do I use
+
+
+    ss.wTH = ss.WTH /1# w_tilde deflated with PNT
+    ss.wNT = ss.WNT /1 # wage deflated with PIGL price index= 1 in initial steady state***.. Or is it
+
     par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.nu)
     par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.nu)
     ss.NKWCT_res = 0.0
