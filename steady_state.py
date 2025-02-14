@@ -116,15 +116,15 @@ def obj_ss(x, model, do_print=False):
 
     # c. household 
     ss.tau = par.tau_ss
-    ss.inc_TH = (1-ss.tau)*ss.wTH*ss.NTH
-    ss.inc_NT = (1-ss.tau)*ss.wNT*ss.NNT 
+    ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH
+    ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT 
 
 
     model.solve_hh_ss(do_print=do_print)
     model.simulate_hh_ss(do_print=do_print)
 
     # Nominal values
-    ss.EX = ss.E_hh*ss.PNT
+    ss.EX = ss.E_hh*ss.PNT # Expenditure
     ss.A = ss.A_hh*ss.PNT
 
     # d. government bonds (nominal)
@@ -142,7 +142,7 @@ def obj_ss(x, model, do_print=False):
     # e. consumption
 
     ss.CT = ss.CT_hh # par.alphaT*ss.C_hh 
-    ss.CNT = ss.CTH_hh #(1-par.alphaT)*ss.C_hh
+    ss.CNT = ss.CNT_hh #(1-par.alphaT)*ss.C_hh
 
     # home vs. foreign
     ss.CTH =  ss.CTH_hh #(1-par.alphaF)*ss.CT

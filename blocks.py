@@ -147,6 +147,8 @@ def HH_post(par,ini,ss,
     # a. home - tradeable vs. non-tradeable 
     CT[:] =   CT_hh 
     CNT[:] = CNT_hh 
+    # print(f'{CNT_hh-ss.CNT_hh}')
+    
 
     # b. home - home vs. foreign tradeable
     CTF[:] = CTF_hh
@@ -159,6 +161,10 @@ def HH_post(par,ini,ss,
     # c. foreign - home tradeable
     CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
 
+    # print(CNT)
+# cnt = (ex-ct*pt ) / pnt
+    # test = (EX - CT*PT) / PNT
+    # print(test)
 
 @nb.njit
 def NKWCs(par,ini,ss,

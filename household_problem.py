@@ -51,14 +51,17 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
 
     # Non homothetic consumption of tradables and non tradables
     # Second term in consumption demand 
-    temp = par.nu_*e**(-par.epsilon_)*p**par.gamma_
+    # temp = par.nu_*e**(-par.epsilon_)*p**par.gamma_
 
     ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
     cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**par.gamma_)
 
+
     # CES shares og home and foreign tra
     ctf[:] = par.alphaF*(PF/PT)**(-par.etaF)*ct
     cth[:] = (1-par.alphaF)*(PTH/PT)**(-par.etaF)*ct
+
+
     
     # ct[:] = (e*p**(-1))*temp
 
