@@ -49,7 +49,6 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
 
 
 
-
     # Non homothetic consumption of tradables and non tradables
     # Second term in consumption demand 
     temp = par.nu_*e**(-par.epsilon_)*p**par.gamma_
