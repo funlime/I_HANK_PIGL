@@ -1,0 +1,10 @@
+TBD 
+
+Larger: 
+Figure out shock
+
+
+Smaller: 
+Add utility calculation to HH problem. 
+Finalize correct names for variables/ final variable list 
+Finalize parameter names 
