@@ -74,10 +74,10 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.sigma = 2.0 # inverse of intertemporal elasticity of substitution
 
         par.alphaT = np.nan # share of tradeable goods in home consumption (determined in ss)
-        par.etaT = 2.0 # elasticity of substitution between tradeable and non-tradeable goods
+        par.etaT = 0.5 #2.0 # elasticity of substitution between tradeable and non-tradeable goods
         
         par.alphaF = 1/3 # share of foreign goods in home tradeable consumption
-        par.etaF = 2.0 # elasticity of substitution between home and foreign tradeable goods
+        par.etaF = 0.5 #2.0 # elasticity of substitution between home and foreign tradeable goods
           
         par.varphiTH = np.nan # disutility of labor in tradeable sector (determined in s)
         par.varphiNT = np.nan # disutility of labor in non-tradeable sector (determined in s)
