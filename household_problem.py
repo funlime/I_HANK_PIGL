@@ -12,7 +12,7 @@ def price_index(P1,P2,eta,alpha):
 
 
 @nb.njit       
-def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf, p, PT, PF, PTH):
+def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf, p, PT, PF, PTH, u):
     """ solve backwards with vbeg_a from previous iteration (here vbeg_a_plus) """
 
     for i_fix in range(par.Nfix):

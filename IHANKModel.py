@@ -23,7 +23,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         self.pols_hh = ['a'] # policy functions
         self.inputs_hh = ['beta','ra','inc_TH','inc_NT', 'p', 'PT', 'PF', 'PTH'] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
-        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf'] # outputs
+        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u'] # outputs
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
 
         # c. GE
