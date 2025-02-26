@@ -62,44 +62,18 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
     cth[:] = (1-par.alphaF)*(PTH/PT)**(-par.etaF)*ct
 
 
-    
-    # ct[:] = (e*p**(-1))*temp
-
-    # cnt[:] = (e)*(1-temp)
-
-    # Checking bc holds (prices should be added but are normalised for now)
-
-        # **** Does not hold. Somthing wrong in the calculations of ct and cnt
-    
-
-
-    # ct[:] = (e/PT)*(par.nu_*(PNT/e)**par.epsilon_ * (PT/PNT)**par.gamma_)
-    # cnt[:] = (e/PNT)*(1-par.nu_*(PNT/e)**par.epsilon_ * (PT/PNT)**par.gamma_)
-    # ct[:] = (e*p**(-1))*(par.nu_*(e**(-1))**par.epsilon_ * (p)**par.gamma_)
-    # cnt[:] = (e)*(1-par.nu_*(e**(-1))**par.epsilon_ * (p)**par.gamma_)
-
-
-
-
-
-
-    # c_TH[:] = 0.0
-    # c_NT[:] = 0.0
-
-    # For now  for solvin NKWPC 
-    # c = e 
-
     for i_z in range(par.Nz):
-        # Change to E_TH
         
         uc_TH[0,i_z,:] = e[0,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
         uc_NT[1,i_z,:] = e[1,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
 
         # c_TH[0,i_z,:] = c[0,i_z,:]
         # c_NT[1,i_z,:] = c[1,i_z,:]
+    # c_TH[:] /= par.sT
+    # c_NT[:] /= (1-par.sT)
 
     uc_TH[:] /= par.sT
     uc_NT[:] /= (1-par.sT)
 
-    # c_TH[:] /= par.sT
-    # c_NT[:] /= (1-par.sT)
+
+    
