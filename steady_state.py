@@ -166,8 +166,6 @@ def obj_ss(x, model, do_print=False):
     ss.Walras = ss.CA
 
     # g. disutility of labor for NKWPCs
-    # Which real wage do I use
-
 
     ss.wTH = ss.WTH /1# w_tilde deflated with PNT
     ss.wNT = ss.WNT /1 # wage deflated with PIGL price index= 1 in initial steady state***.. Or is it
@@ -176,6 +174,9 @@ def obj_ss(x, model, do_print=False):
     par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.nu)
     ss.NKWCT_res = 0.0
     ss.NKWCNT_res = 0.0
+
+    # Utility 
+    ss.U = ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
 
     return [ss.clearing_YNT, ss.NX] #ss.NFA
 

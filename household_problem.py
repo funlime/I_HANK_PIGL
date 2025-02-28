@@ -61,11 +61,16 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
     ctf[:] = par.alphaF*(PF/PT)**(-par.etaF)*ct
     cth[:] = (1-par.alphaF)*(PTH/PT)**(-par.etaF)*ct
 
+    # Utility 
+    u[:]=  (1/par.epsilon_) * ( (e)**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1) 
+
+
+    PNT = PT/p
 
     for i_z in range(par.Nz):
         
-        uc_TH[0,i_z,:] = e[0,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
-        uc_NT[1,i_z,:] = e[1,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+        uc_TH[0,i_z,:] = PNT**(-par.epsilon_)*e[0,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+        uc_NT[1,i_z,:] = PNT**(-par.epsilon_)*e[1,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
 
         # c_TH[0,i_z,:] = c[0,i_z,:]
         # c_NT[1,i_z,:] = c[1,i_z,:]

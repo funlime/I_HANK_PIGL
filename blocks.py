@@ -140,7 +140,7 @@ def HH_pre(par,ini,ss,
 @nb.njit
 def HH_post(par,ini,ss,
                 C_hh,PT,PNT,P,PTH,PF,M_s,PTH_s,PF_s,
-                CT,CNT,CTF,CTH,CTH_s, CT_hh, CNT_hh, CTF_hh, CTH_hh, E_hh, E, A, A_hh, EX):
+                CT,CNT,CTF,CTH,CTH_s,NTH, NNT, CT_hh, CNT_hh, CTF_hh, CTH_hh, E_hh, E, A, A_hh, EX, U, U_hh):
 
     # a bit redundant to change names from _hh
 
@@ -160,6 +160,10 @@ def HH_post(par,ini,ss,
 
     # c. foreign - home tradeable
     CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
+
+#ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1-par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1-par.nu)
+    # d. utility
+    U[:] = U_hh - par.varphiTH *(NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
 
     # print(CNT)
 # cnt = (ex-ct*pt ) / pnt
