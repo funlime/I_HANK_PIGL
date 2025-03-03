@@ -48,6 +48,7 @@ def prepare_hh_ss(model):
 
     v_a = np.zeros((par.Nfix,par.Nz,par.Na))
     
+    # CHANGE TO NEW FUNCTIONIONAL FORM 
     for i_fix in range(par.Nfix):
         for i_z in range(par.Nz):
 
@@ -62,6 +63,7 @@ def prepare_hh_ss(model):
             v_a[i_fix,i_z,:] = c**(-par.sigma)
 
             ss.vbeg_a[i_fix] = ss.z_trans[i_fix]@v_a[i_fix]
+
         
 def obj_ss(x, model, do_print=False):
     """ evaluate steady state"""
@@ -90,6 +92,7 @@ def obj_ss(x, model, do_print=False):
     ss.ra = ss.i = ss.iF_s = ss.rF = par.rF_ss
     ss.UIP_res = 0.0
 
+
     # domestic interes rate shock:
     ss.i_shock = 0.0
 
@@ -100,7 +103,12 @@ def obj_ss(x, model, do_print=False):
     ss.ZNT = 1.0
     ss.NTH = 1.0*par.sT
     ss.NNT = 1.0*(1-par.sT)
+
+
+    ss.n_NT = ss.NNT/par.sT
+    ss.n_TH = ss.NTH/(1-par.sT)
     
+
     # production
     ss.YTH = ss.ZTH*ss.NTH
     ss.YNT = ss.ZNT*ss.NNT
@@ -120,8 +128,11 @@ def obj_ss(x, model, do_print=False):
     ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT 
 
 
+
+    par.run_u == False
     model.solve_hh_ss(do_print=do_print)
     model.simulate_hh_ss(do_print=do_print)
+
 
     # Nominal values
     ss.EX = ss.E_hh*ss.PNT # Expenditure
@@ -176,7 +187,7 @@ def obj_ss(x, model, do_print=False):
     ss.NKWCNT_res = 0.0
 
     # Utility 
-    ss.U = ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
+    # ss.U = ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
 
     return [ss.clearing_YNT, ss.NX] #ss.NFA
 
@@ -202,6 +213,7 @@ def find_ss(model, do_print=False):
         print(f"Failed: {e}")
 
     # b. Reruning model
+    par.run_u = True
     obj_ss(res.x, model)
 
     # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes

@@ -121,11 +121,16 @@ def government(par,ini,ss,
 
 @nb.njit
 def HH_pre(par,ini,ss,
-           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH): # CHange inc_TH/inc_NT to w tilde
+           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH,n_NT,n_TH ): # CHange inc_TH/inc_NT to w tilde
     
     # a. after tax real wage in terms of non-tradable goods
     inc_NT[:] = (NNT*WNT*(1-tau))/PNT
     inc_TH[:] = (NTH*WTH*(1-tau))/PNT
+
+
+    n_NT[:] = NNT/par.sT
+    n_TH[:] = NTH/(1-par.sT)
+
 
     # b. relative prices
     p[:] = PNT/PT

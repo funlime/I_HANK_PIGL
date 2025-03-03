@@ -21,7 +21,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # b. household
         self.grids_hh = ['a'] # grids
         self.pols_hh = ['a'] # policy functions
-        self.inputs_hh = ['beta','ra','inc_TH','inc_NT', 'p', 'PT', 'PF', 'PTH'] # direct inputs
+        self.inputs_hh = ['beta','ra','inc_TH','inc_NT', 'p', 'PT', 'PF', 'PTH', 'n_NT','n_TH' ] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
         self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u'] # outputs
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
@@ -63,6 +63,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.gamma_ = 0.29 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
         par.nu_ = 0.475 # Scalling parameter
         par.omega_T_ = np.nan # agregate expenditure share on tradables in steady state
+        par.run_u = False
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors

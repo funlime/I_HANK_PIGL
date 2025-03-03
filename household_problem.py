@@ -12,8 +12,10 @@ def price_index(P1,P2,eta,alpha):
 
 
 @nb.njit       
-def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf, p, PT, PF, PTH, u):
+def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf, p, PT, PF, PTH, u, n_NT,n_TH ):
     """ solve backwards with vbeg_a from previous iteration (here vbeg_a_plus) """
+
+    n_list = [n_NT,n_TH]
 
     for i_fix in range(par.Nfix):
         for i_z in range(par.Nz):
@@ -38,13 +40,20 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
             a[i_fix,i_z,:] = np.fmax(a[i_fix,i_z,:],0.0) # enforce borrowing constraint
             e[i_fix,i_z] = m-a[i_fix,i_z]
 
+
+
+
         # b. expectation step
         v_a = (1+ra)*e[i_fix]**(-( 1 - par.epsilon_ ) )
         vbeg_a[i_fix] = z_trans[i_fix]@v_a
 
+
+    
     # extra output
     uc_TH[:] = 0.0
     uc_NT[:] = 0.0
+
+
 
 
 
@@ -61,8 +70,13 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
     ctf[:] = par.alphaF*(PF/PT)**(-par.etaF)*ct
     cth[:] = (1-par.alphaF)*(PTH/PT)**(-par.etaF)*ct
 
-    # Utility 
-    u[:]=  (1/par.epsilon_) * ( (e)**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  - 1
+
+    if par.run_u == False:
+        u[:] = 0.0
+    if par.run_u == True:
+        u[0,:,:]=  (1/par.epsilon_) * ( (e[0,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  -  par.varphiTH*(n_TH**(1+par.nu))/ (1+par.nu)
+        u[1,:,:]=  (1/par.epsilon_) * ( (e[1,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  - par.varphiNT*(n_NT**(1+par.nu))/ (1+par.nu) 
+
 
 
     PNT = PT/p
