@@ -62,7 +62,7 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
     cth[:] = (1-par.alphaF)*(PTH/PT)**(-par.etaF)*ct
 
     # Utility 
-    u[:]=  (1/par.epsilon_) * ( (e)**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1) 
+    u[:]=  (1/par.epsilon_) * ( (e)**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  - 1
 
 
     PNT = PT/p
