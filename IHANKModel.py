@@ -21,7 +21,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # b. household
         self.grids_hh = ['a'] # grids
         self.pols_hh = ['a'] # policy functions
-        self.inputs_hh = ['beta','ra','inc_TH','inc_NT', 'p', 'PT', 'PF', 'PTH', 'n_NT','n_TH' ] # direct inputs
+        self.inputs_hh = ['beta','ra','inc_TH','inc_NT', 'p', 'PT', 'PF', 'PTH', 'n_NT','n_TH', 'WNT','WTH', 'tau', 'PNT'] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
         self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u'] # outputs
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
@@ -78,7 +78,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.etaT = 0.5 #2.0 # elasticity of substitution between tradeable and non-tradeable goods
         
         par.alphaF = 1/3 # share of foreign goods in home tradeable consumption
-        par.etaF = 0.5 #2.0 *** # elasticity of substitution between home and foreign tradeable goods
+        par.etaF = 2.0 #*** # elasticity of substitution between home and foreign tradeable goods
           
         par.varphiTH = np.nan # disutility of labor in tradeable sector (determined in s)
         par.varphiNT = np.nan # disutility of labor in non-tradeable sector (determined in s)
@@ -94,7 +94,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
  
         # e. foreign Economy
         par.rF_ss = 0.005 # exogenous foreign interest rate
-        par.eta_s =  0.5 #2.0 *** # Armington elasticity of foreign demand
+        par.eta_s =  2.0 #*** # Armington elasticity of foreign demand
         par.M_s_ss = np.nan # size of foreign market (determined in ss)
 
         # f. government

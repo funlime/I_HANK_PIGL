@@ -12,10 +12,10 @@ def price_index(P1,P2,eta,alpha):
 
 
 @nb.njit       
-def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf, p, PT, PF, PTH, u, n_NT,n_TH ):
+def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf, p, PT, PNT, PF, PTH, u, n_NT,n_TH, WNT,WTH, tau  ):
     """ solve backwards with vbeg_a from previous iteration (here vbeg_a_plus) """
 
-    n_list = [n_NT,n_TH]
+
 
     for i_fix in range(par.Nfix):
         for i_z in range(par.Nz):
@@ -24,9 +24,11 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
 
             # i. income
             if i_fix == 0:
-                inc = inc_TH/par.sT
+                inc = (n_NT*WNT*(1-tau))/PNT
+                # inc = inc_TH/par.sT
             else:
-                inc = inc_NT/(1-par.sT)
+                inc = (n_TH*WTH*(1-tau))/PNT
+                # inc = inc_NT/(1-par.sT)
          
             z = par.z_grid[i_z]
 
@@ -79,12 +81,13 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
 
 
 
-    PNT = PT/p
+    # PNT = PT/p
 
     for i_z in range(par.Nz):
+        # Marginal utility of expenditure (not marginal expenditure)
         
-        uc_TH[0,i_z,:] = PNT**(-par.epsilon_)*e[0,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
-        uc_NT[1,i_z,:] = PNT**(-par.epsilon_)*e[1,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+        uc_TH[0,i_z,:] = PNT**(-par.epsilon_)*(PNT*e[0,i_z,:])**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+        uc_NT[1,i_z,:] = PNT**(-par.epsilon_)*(PNT*e[1,i_z,:])**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
 
         # c_TH[0,i_z,:] = c[0,i_z,:]
         # c_NT[1,i_z,:] = c[1,i_z,:]

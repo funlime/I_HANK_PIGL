@@ -88,6 +88,7 @@ def prices(par,ini,ss,
 def central_bank(par,ini,ss,pi,i, i_shock,CB):
 
     # TBD: Add choice of which inflation to target
+    # Agregate inflaiton, how to weight tradable and non tradable inflation 
     
     # 1. setting interest rate
     if par.float == True: # taylor rule
@@ -110,8 +111,8 @@ def government(par,ini,ss,
     # b. government budget
         
         # o. nomnial tax base
-        tax_base = WTH[t]*NTH[t]+WNT[t]*NNT[t]  
-
+        tax_base =  WTH[t]*NTH[t]+WNT[t]*NNT[t]  
+ 
         # oo. tax rates following tax rule 
         tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/PNT[t])/(ss.YTH+ss.YNT) 
 
@@ -168,7 +169,7 @@ def HH_post(par,ini,ss,
 
 #ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1-par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1-par.nu)
     # d. utility
-    U[:] = U_hh - par.varphiTH *(NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
+    U[:] = U_hh #- par.varphiTH *(NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
 
     # print(CNT)
 # cnt = (ex-ct*pt ) / pnt
