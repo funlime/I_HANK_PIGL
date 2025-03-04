@@ -81,8 +81,6 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
 
 
 
-    # PNT = PT/p
-
     for i_z in range(par.Nz):
         # Marginal utility of expenditure (not marginal expenditure)
         
