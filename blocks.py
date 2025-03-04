@@ -71,7 +71,14 @@ def prices(par,ini,ss,
 
     # c. PIGL Cost of living index for representative agents 
     p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
+    
     P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(-par.gamma_/par.epsilon_)
+
+
+    # CES price index CHEATING***
+
+    P[:] = price_index(P,PNT,2.0, par.omega_T_)
+
 
     # d. inflation rates
     pi_F_s[:] = inflation_from_price(PF_s,ini.PF_s)
@@ -93,7 +100,9 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB):
     # 1. setting interest rate
     if par.float == True: # taylor rule
         pi_plus = lead(pi,ss.pi)
+        
         i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
+
     else: # fixed exchange rate
         i[:] = CB
     
@@ -165,7 +174,8 @@ def HH_post(par,ini,ss,
     A[:] = A_hh * PNT
 
     # c. foreign - home tradeable
-    CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
+    # CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
+    CTH_s[:] = (PTH_s)**(-par.eta_s)*M_s # Price level abroud = 1
 
 #ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1-par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1-par.nu)
     # d. utility
