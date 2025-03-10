@@ -72,3 +72,40 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     shock_PF_s_taylor = {'dPF_s':dPF_s, 'drF':drF}
 
     return [shock_forigne_interest, shock_PF_s, shock_PF_s_taylor]
+
+
+
+def test_model_properties(models):
+    # Define the conditions to be tested
+    conditions = [
+        ('PF increase', lambda model: model.path.PF[0] > model.ss.PF),
+        ('PT increases', lambda model: model.path.PT[0] > model.ss.PT),
+        ('P increases', lambda model: model.path.P[0] > model.ss.P),
+        ('CTF decreases', lambda model: model.path.CTF[0] < model.ss.CTF),
+        ('i increases', lambda model: model.path.i[0] > model.ss.i),
+        ('U decreases', lambda model: model.path.U_hh[0] < model.ss.U_hh)
+    ]
+
+    for model in models:
+        print(f'\nTesting the aggregate properties of {model.name}')
+        
+        # Initialize lists to store fulfilled and unfulfilled conditions
+        fulfilled = []
+        unfulfilled = []
+
+        # Test each condition
+        for condition_name, condition_func in conditions:
+            if condition_func(model):
+                fulfilled.append(condition_name)
+            else:
+                unfulfilled.append(condition_name)
+
+        # Print the results
+        print('Fulfilled conditions:')
+        for condition in fulfilled:
+            print(f'  {condition}')
+
+        print('Unfulfilled conditions:')
+        for condition in unfulfilled:
+            print(f'  {condition}')
+

@@ -12,10 +12,10 @@ def price_index(P1,P2,eta,alpha):
 
 
 @nb.njit       
-def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf, p, PT, PNT, PF, PTH, u, n_NT,n_TH, WNT,WTH, tau  ):
+def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf,  PT, PNT, PF, PTH, u, n_NT,n_TH, WNT,WTH, tau  ):
     """ solve backwards with vbeg_a from previous iteration (here vbeg_a_plus) """
 
-
+    p_ = PNT/PT
 
     for i_fix in range(par.Nfix):
         for i_z in range(par.Nz):
@@ -64,9 +64,12 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
     # Second term in consumption demand 
     # temp = par.nu_*e**(-par.epsilon_)*p**par.gamma_
 
-    ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
-    cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**par.gamma_)
+    # ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
+    # cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**par.gamma_)
 
+    ct[:] = e/p_*par.nu_*e**(-par.epsilon_)*p_**(par.gamma_)
+    cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p_**par.gamma_)
+ 
 
     # CES shares og home and foreign tra
     ctf[:] = par.alphaF*(PF/PT)**(-par.etaF)*ct
@@ -76,8 +79,8 @@ def solve_hh_backwards(par,z_trans,beta,ra,inc_TH,inc_NT,vbeg_a_plus,vbeg_a,a,c,
     if par.run_u == False:
         u[:] = 0.0
     if par.run_u == True:
-        u[0,:,:]=  (1/par.epsilon_) * ( (e[0,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  -  par.varphiTH*(n_TH**(1+par.nu))/ (1+par.nu)
-        u[1,:,:]=  (1/par.epsilon_) * ( (e[1,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  - par.varphiNT*(n_NT**(1+par.nu))/ (1+par.nu) 
+        u[0,:,:]=  (1/par.epsilon_) * ( (e[0,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p_)**par.gamma_ -1)  -  par.varphiTH*(n_TH**(1+par.nu))/ (1+par.nu)
+        u[1,:,:]=  (1/par.epsilon_) * ( (e[1,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p_)**par.gamma_ -1)  - par.varphiNT*(n_NT**(1+par.nu))/ (1+par.nu) 
 
 
 

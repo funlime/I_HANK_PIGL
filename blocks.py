@@ -70,14 +70,14 @@ def prices(par,ini,ss,
     PT[:] = price_index(PF,PTH,par.etaF,par.alphaF)
 
     # c. PIGL Cost of living index for representative agents 
-    p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
+    # p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
     
-    P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(-par.gamma_/par.epsilon_)
+    # P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(-par.gamma_/par.epsilon_)
 
 
     # CES price index CHEATING***
-
-    P[:] = price_index(P,PNT,2.0, par.omega_T_)
+    
+    P[:] =    price_index(PTH,PNT,2.0, par.omega_T_)
 
 
     # d. inflation rates
@@ -92,7 +92,7 @@ def prices(par,ini,ss,
 
 
 @nb.njit
-def central_bank(par,ini,ss,pi,i, i_shock,CB):
+def central_bank(par,ini,ss,pi,i, i_shock,CB,r_real):
 
     # TBD: Add choice of which inflation to target
     # Agregate inflaiton, how to weight tradable and non tradable inflation 
@@ -100,12 +100,20 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB):
     # 1. setting interest rate
     if par.float == True: # taylor rule
         pi_plus = lead(pi,ss.pi)
-        
-        i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
+
+        if par.mon_policy == 'real':
+
+            i[:] = ss.i + pi_plus # Real rule
+
+        if par.mon_policy == 'taylor':
+            i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
 
     else: # fixed exchange rate
         i[:] = CB
     
+    r_real[:] = 1 # Add a "real" interest rate in terms of general price level?
+
+
 
 @nb.njit
 def government(par,ini,ss,
@@ -131,7 +139,7 @@ def government(par,ini,ss,
 
 @nb.njit
 def HH_pre(par,ini,ss,
-           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH,n_NT,n_TH ): # CHange inc_TH/inc_NT to w tilde
+           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH,n_NT,n_TH , pi, r_real): # CHange inc_TH/inc_NT to w tilde
     
     # a. after tax real wage in terms of non-tradable goods
     inc_NT[:] = (NNT*WNT*(1-tau))/PNT
@@ -151,6 +159,10 @@ def HH_pre(par,ini,ss,
 
     # oo. deflated with inflation in non-tradable prices to get interest on assets_tilde (nominal assets divided by PNT)
     ra[:] = (1+lag_i)/(1+pi_NT)-1 
+
+    # ooo. Ex ante real interest rate, defalted with the general price level: 
+    pi_plus = lead(pi,ss.pi)
+    r_real[:] = (1+i)/(1+pi_plus)-1
 
 @nb.njit
 def HH_post(par,ini,ss,
@@ -174,8 +186,12 @@ def HH_post(par,ini,ss,
     A[:] = A_hh * PNT
 
     # c. foreign - home tradeable
-    # CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
-    CTH_s[:] = (PTH_s)**(-par.eta_s)*M_s # Price level abroud = 1
+    if par.pf_fixed == True:
+        CTH_s[:] = (PTH_s)**(-par.eta_s)*M_s # Price level abroud not equal to price of imported goods but fixed at 1. 
+    
+    if par.pf_fixed == False:
+        CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
+
 
 #ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1-par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1-par.nu)
     # d. utility
@@ -229,6 +245,9 @@ def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s):
     RHS = (1+iF_s)*E_plus/E # 
 
     UIP_res[:] = LHS-RHS # Target
+
+    # Real in terms of the general pris level 
+
 
 
 @nb.njit

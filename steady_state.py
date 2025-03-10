@@ -89,7 +89,7 @@ def obj_ss(x, model, do_print=False):
         ss.__dict__[varname] = 0.0
 
     # real+nominal interest rates are equal to foreign interest rate
-    ss.ra = ss.i = ss.iF_s = ss.rF = par.rF_ss
+    ss.ra = ss.i = ss.iF_s = ss.r_real = ss.rF = par.rF_ss
     ss.UIP_res = 0.0
 
 
