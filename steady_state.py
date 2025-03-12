@@ -79,7 +79,7 @@ def obj_ss(x, model, do_print=False):
 
     # normalzied to 1
     # for varname in ['PF_s','E','PF','PTH','PT','PNT','P','PTH_s','Q']:
-    for varname in ['PF_s','E','PF','PTH','PT','P','PTH_s', 'p', 'PNT','P']:
+    for varname in ['PF_s','E','PF','PTH','PT','P','PTH_s', 'p', 'PNT','P', 'PE', 'PTHF', 'PE_s']:
         ss.__dict__[varname] = 1.0
 
     
@@ -91,6 +91,7 @@ def obj_ss(x, model, do_print=False):
     # real+nominal interest rates are equal to foreign interest rate
     ss.ra = ss.i = ss.iF_s = ss.r_real = ss.rF = par.rF_ss
     ss.UIP_res = 0.0
+    ss.epsilon_i = 0.0
 
 
     # domestic interes rate shock:
@@ -152,12 +153,17 @@ def obj_ss(x, model, do_print=False):
     
     # e. consumption
 
+    # Tradable and non-tradable consumption
     ss.CT = ss.CT_hh # par.alphaT*ss.C_hh 
     ss.CNT = ss.CNT_hh #(1-par.alphaT)*ss.C_hh
 
-    # home vs. foreign
+    # tradable goods and energy consumeption
+    ss.CTHF =ss.CTHF_hh 
+    ss.CE = ss.CE_hh 
+
     ss.CTH =  ss.CTH_hh #(1-par.alphaF)*ss.CT
     ss.CTF = ss.CTF_hh #par.alphaF*ss.CT
+
 
     # size of foreign market
     ss.CTH_s = ss.M_s = ss.YTH - ss.CTH # clearing_T
@@ -171,7 +177,8 @@ def obj_ss(x, model, do_print=False):
 
     # zero net foreign assets
     ss.GDP = ss.PTH*ss.YTH + ss.PNT*ss.YNT
-    ss.NX = ss.GDP - ss.EX - ss.PNT*ss.G 
+    ss.YH = ss.YTH + ss.YNT
+    ss.NX = ss.GDP - ss.EX - ss.PNT*ss.G  # net export of goods. Should energy be included?
     ss.NFA = ss.A - ss.B
     ss.CA = ss.NX + (1+ss.i)*ss.NFA
     ss.Walras = ss.CA
@@ -180,6 +187,8 @@ def obj_ss(x, model, do_print=False):
 
     ss.wTH = ss.WTH /1# w_tilde deflated with PNT
     ss.wNT = ss.WNT /1 # wage deflated with PIGL price index= 1 in initial steady state***.. Or is it
+    ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
+    ss.w = ss.w/ss.P
 
     par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.nu)
     par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.nu)
@@ -209,6 +218,7 @@ def find_ss(model, do_print=False):
         res = optimize.root(obj_ss, x0, args=(model,), method='hybr')  # or another method like 'lm', 'broyden1', etc.
         # obj_ss[res.x]
         print(f'Share of domestic workers in tradable sector = {res.x[1]:.2f}')
+    
     except Exception as e:
         print(f"Failed: {e}")
 
@@ -218,6 +228,9 @@ def find_ss(model, do_print=False):
 
     # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes
     par.omega_T_ = ss.PNT * ss.CT_hh / ss.E_hh *ss.PNT
+
+    # Average elicticity of substitution between tradable and non-tradable goods 
+    par.eta_T_RA = 1-par.gamma_-(par.omega_T_/(1-par.omega_T_))*(par.gamma_-par.epsilon_)
 
 
 

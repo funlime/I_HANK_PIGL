@@ -21,13 +21,13 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # b. household
         self.grids_hh = ['a'] # grids
         self.pols_hh = ['a'] # policy functions
-        self.inputs_hh = ['beta','ra','inc_TH','inc_NT', 'PT', 'PF', 'PTH', 'n_NT','n_TH', 'WNT','WTH', 'tau', 'PNT'] # direct inputs
+        self.inputs_hh = ['beta','ra', 'PT', 'PF', 'PTH', 'n_NT','n_TH', 'WNT','WTH', 'tau', 'PNT', 'PE','PTHF'] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
-        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u'] # outputs
+        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u', 'ce','cthf'] # outputs
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
 
         # c. GE
-        self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','beta','G','i_shock'] # exogenous inputs
+        self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','beta','G','i_shock', 'PE_s', 'epsilon_i'] # exogenous inputs
         self.unknowns = ['CB','NNT','NTH','piWTH','piWNT'] # endogenous inputs
         self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res'] # targets
         
@@ -66,6 +66,10 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.run_u = False
         par.mon_policy = 'real'
         par.pf_fixed = True
+        par.etaE = 0.1 # elasticity of substitution between tradable goods and energy 
+        par.alphaE = 0.05 # share of energy in tradable + energy consumption
+        par.eta_T_RA = np.nan
+        par.phi_inflation = 1.0
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors
