@@ -19,7 +19,9 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     drF = np.zeros(model.par.T)
     di_shock = np.zeros(model.par.T)
     depsilon_i = np.zeros(model.par.T)
+    PE_calc = np.zeros(model.par.T)
 
+    # Forigne inflation
     # inflation from period t to t+1
     for t in range(T_max):
         pi[t] = scale*rho**t
@@ -70,10 +72,25 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
         ax2.set_title('Forigne real interest rate')
 
 
-    # Domestic interest rate shock
-            
+    # Domestic interest rate shock      
     for t in range(T_max):
-        depsilon_i[t] = scale*rho**t
+        di_shock[t] = scale*rho**t
+    
+    # Forigne energy price shock
+        
+    for t in range(T_max):
+        pi[t] = 0.1*rho**t
+
+
+    # Prices
+    for t in range(model.par.T):
+        if t==0:
+            PE_calc[t] = model.ss.PE_s*(1+pi[t])
+        else:
+            PE_calc[t] = PE_calc[t-1]*(1+pi[t])
+
+    dPE_s = PE_calc- model.ss.PE_s
+
 
     # Defining shocks 
     shock_forigne_interest = { 'drF':drF}
@@ -83,6 +100,7 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     shock_PE_PF = {'dPE_s':dPE_s, 'dPF_s':dPF_s}
     shock_PE_PF_taylor = {'dPE_s':dPE_s, 'dPF_s':dPF_s, 'drF':drF}
     shock_i = {'depsilon_i':depsilon_i}
+    shock_i = {'di_shock':di_shock}
 
     return [shock_PE_s, shock_forigne_interest, shock_PF_s, shock_PF_s_taylor, shock_PE_PF, shock_PE_PF_taylor, shock_i]
 

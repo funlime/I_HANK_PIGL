@@ -89,7 +89,7 @@ def obj_ss(x, model, do_print=False):
         ss.__dict__[varname] = 0.0
 
     # real+nominal interest rates are equal to foreign interest rate
-    ss.ra = ss.i = ss.iF_s = ss.r_real = ss.rF = par.rF_ss
+    ss.ra = ss.i = ss.iF_s = ss.rF = par.rF_ss
     ss.UIP_res = 0.0
     ss.epsilon_i = 0.0
 
@@ -104,6 +104,7 @@ def obj_ss(x, model, do_print=False):
     ss.ZNT = 1.0
     ss.NTH = 1.0*par.sT
     ss.NNT = 1.0*(1-par.sT)
+    ss.N = ss.NTH + ss.NNT  
 
 
     ss.n_NT = ss.NNT/par.sT
@@ -127,6 +128,8 @@ def obj_ss(x, model, do_print=False):
     ss.tau = par.tau_ss
     ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH
     ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT 
+    ss.INC = ss.inc =  ss.inc_TH + ss.inc_NT
+
 
 
 
@@ -188,15 +191,13 @@ def obj_ss(x, model, do_print=False):
     ss.wTH = ss.WTH /1# w_tilde deflated with PNT
     ss.wNT = ss.WNT /1 # wage deflated with PIGL price index= 1 in initial steady state***.. Or is it
     ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
-    ss.w = ss.w/ss.P
+    ss.w = ss.W/ss.P
 
     par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.nu)
     par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.nu)
     ss.NKWCT_res = 0.0
     ss.NKWCNT_res = 0.0
 
-    # Utility 
-    # ss.U = ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
 
     return [ss.clearing_YNT, ss.NX] #ss.NFA
 

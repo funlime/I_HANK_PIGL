@@ -68,7 +68,6 @@ def prices(par,ini,ss,
     PTH_s[:] = PTH/E
 
     PE[:] = PE_s*E
-    # print(PE)
 
     # for t in range(par.T): 
     #     # if np.isnan(PTHF[t]):
@@ -97,14 +96,14 @@ def prices(par,ini,ss,
 
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
 
-    # c. PIGL Cost of living index for representative agents 
+    # c. PIGL Cost of living index for representative agents  (not used - look at first)
     # p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
     
     # P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(-par.gamma_/par.epsilon_)
 
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
-    P[:] =   price_index(PT,PNT,par.eta_T_RA, par.omega_T_)
+    P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T_)
 
 
 
@@ -120,7 +119,7 @@ def prices(par,ini,ss,
 
 
 @nb.njit
-def central_bank(par,ini,ss,pi,i, i_shock,CB,r_real, pi_NT, epsilon_i):
+def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i):
 
     # TBD: Add choice of which inflation to target
     # Agregate inflaiton, how to weight tradable and non tradable inflation 
@@ -131,24 +130,15 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB,r_real, pi_NT, epsilon_i):
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
 
-        # i[:] = ss.i + pi_plus # Real rule
-        # i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
-
-
         if par.mon_policy == 'real':
+#  i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
+            i[:] = ss.i + pi_plus # Real rule
 
-            i[:] = ss.i + pi_plus + epsilon_i # Real rule
-            # par.phi_inflation*pi_plus
-        
         if par.mon_policy == 'real_PNT':
 
             i[:] = ss.i + pi_plus_NT + i_shock
         
-        if par.mon_policy == 'taylor_PNT':
-                
-            i[:] = (1+ss.i) * ((1+pi_plus_NT)/(1+ss.pi))**par.phi -1 + i_shock
-
-        if par.mon_policy == 'taylor':
+        if par.mon_policy == 'taylor_OLD':
 
             i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
 
@@ -156,8 +146,7 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB,r_real, pi_NT, epsilon_i):
     else: # fixed exchange rate
         i[:] = CB
 
-    # Add a "real" interest rate in terms of general price level?
-    r_real[:] = ss.r_real # *** Not done yet 
+    # TBD Add an terest rate in terms of general price level
 
 
 
@@ -185,19 +174,21 @@ def government(par,ini,ss,
 
 @nb.njit
 def HH_pre(par,ini,ss,
-           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH,n_NT,n_TH , pi, r_real): # CHange inc_TH/inc_NT to w tilde
+           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH,n_NT,n_TH , pi): # CHange inc_TH/inc_NT to w tilde
     
-    # a. after tax real wage in terms of non-tradable goods
+
+    # Housholds inputs
+
+    # a. after tax real wage in terms of non-tradable goods (Also calculated inside HH block for eisire decomposition)
     inc_NT[:] = (NNT*WNT*(1-tau))/PNT
     inc_TH[:] = (NTH*WTH*(1-tau))/PNT
 
-
+    # b. labor supply
     n_NT[:] = NNT/par.sT
     n_TH[:] = NTH/(1-par.sT)
 
-
     # b. relative prices
-    p[:] = PNT/PT
+    p[:] = PT/PNT
 
     #c. Interest rate
     # o. last periods interest rate 
@@ -208,12 +199,12 @@ def HH_pre(par,ini,ss,
 
     # ooo. Ex ante real interest rate, defalted with the general price level: 
     pi_plus = lead(pi,ss.pi)
-    r_real[:] = (1+i)/(1+pi_plus)-1
+    # r_real[:] = (1+i)/(1+pi_plus)-1 # Real interest rate in terms of general price level
 
 @nb.njit
 def HH_post(par,ini,ss,
                 C_hh,PT,PNT,P,PTH,PF,M_s,PTH_s,PF_s,
-                CT,CNT,CTF,CTH,CTH_s,NTH, NNT, CT_hh, CNT_hh, CTF_hh, CTH_hh, E_hh, E, A, A_hh, EX, U, U_hh, CTHF, CTHF_hh, CE, CE_hh):
+                CT,CNT,CTF,CTH,CTH_s,NTH, NNT, CT_hh, CNT_hh, CTF_hh, CTH_hh, E_hh, E, A, A_hh, EX,  CTHF, CTHF_hh, CE, CE_hh):
 
     # a bit redundant to change names from _hh
 
@@ -240,14 +231,6 @@ def HH_post(par,ini,ss,
         CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
 
 
-#ss.U_hh - par.varphiTH *(ss.NTH/par.sT)**(1+par.nu)/(1-par.nu) - par.varphiNT *(ss.NNT/(1-par.sT))**(1+par.nu)/(1-par.nu)
-    # d. utility
-    U[:] = U_hh #- par.varphiTH *(NTH/par.sT)**(1+par.nu)/(1+par.nu) - par.varphiNT *(NNT/(1-par.sT))**(1+par.nu)/(1+par.nu)
-
-    # print(CNT)
-# cnt = (ex-ct*pt ) / pnt
-    # test = (EX - CT*PT) / PNT
-    # print(test)
 
 @nb.njit
 def NKWCs(par,ini,ss,
@@ -264,12 +247,14 @@ def NKWCs(par,ini,ss,
 
     LHS = piWTH  
     RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*WTH*UC_TH_hh) + beta*piWTH_plus        
+    # RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*wTH*UC_TH_hh) + beta*piWTH_plus        
     NKWCT_res[:] = LHS-RHS # Target
 
     # c. phillips curve non-tradeable
     piWNT_plus = lead(piWNT,ss.piWNT)
 
     LHS = piWNT
+    # RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + beta*piWNT_plus
     RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*WNT*UC_NT_hh) + beta*piWNT_plus
     
     NKWCNT_res[:] = LHS-RHS # Target
@@ -306,7 +291,7 @@ def market_clearing(par,ini,ss,
 @nb.njit
 def accounting(par,ini,ss,
                PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra,
-               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w):
+               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH):
     
 
     # not in use     
@@ -342,3 +327,6 @@ def accounting(par,ini,ss,
     YH[:] = YNT+YTH
     W[:] = (par.sT*WTH + (1-par.sT)*WNT)
     w[:] = W/P # Tjeck what P is 
+    N[:] = NNT+NTH
+    INC[:] = (inc_NT + inc_TH)*PNT
+    inc[:] = INC/P
