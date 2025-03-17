@@ -184,12 +184,12 @@ def HH_pre(par,ini,ss,
     inc_TH[:] = (NTH*WTH*(1-tau))/PNT
 
     # b. labor supply Wrong but works kinda
-    # n_NT[:] = NNT/par.sT
-    # n_TH[:] = NTH/(1-par.sT)
+    n_NT[:] = NNT/par.sT
+    n_TH[:] = NTH/(1-par.sT)
 
     # b. labor supply correct but does not work.... ***
-    n_NT[:] = NNT/(1-par.sT)
-    n_TH[:] = NTH/par.sT
+    # n_NT[:] = NNT/(1-par.sT)
+    # n_TH[:] = NTH/par.sT
 
     # b. Manual 
     # n_NT[:] = NNT/(1-0.4995882080832822)
