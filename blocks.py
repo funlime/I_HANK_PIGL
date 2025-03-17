@@ -69,29 +69,11 @@ def prices(par,ini,ss,
 
     PE[:] = PE_s*E
 
-    # for t in range(par.T): 
-    #     # if np.isnan(PTHF[t]):
-    #     #     print('PTHF is nan')
-    #     if np.isnan(PTH[t]):
-    #         print('PTH is nan')
-    #     if np.isnan(PF[t]):
-    #         print('PF is nan')
+
 
     # b. price indices
 
     PTHF[:] = price_index(PF,PTH,par.etaF,par.alphaF)
-
-    # for t in range(par.T): 
-    #     if np.isnan(PTHF[t]):
-    #         print('PTHF is nan')
-    #     if np.isnan(PTH[t]):
-    #         print('PTH is nan')
-    #     if np.isnan(PF[t]):
-    #         print('PF is nan')
-
-    # PT[:] = price_index(PTHF,PE,par.etaE,par.alphaE)
-
-    # Testing PTHF and PE is a number
 
 
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
@@ -130,8 +112,8 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i):
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
 
-        if par.mon_policy == 'real':
-#  i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
+        if par.mon_policy == 'real': #  i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
+
             i[:] = ss.i + pi_plus # Real rule
 
         if par.mon_policy == 'real_PNT':
@@ -184,8 +166,8 @@ def HH_pre(par,ini,ss,
     inc_TH[:] = (NTH*WTH*(1-tau))/PNT
 
     # b. labor supply
-    n_NT[:] = NNT/par.sT
-    n_TH[:] = NTH/(1-par.sT)
+    n_NT[:] = NNT/(1-par.sT)
+    n_TH[:] = NTH/par.sT
 
     # b. relative prices
     p[:] = PT/PNT
@@ -234,28 +216,28 @@ def HH_post(par,ini,ss,
 
 @nb.njit
 def NKWCs(par,ini,ss,
-          beta,piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, P):
+          beta,piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
 
     # SHOULD IT BE REAL WAGE? vi ser på marginal nytte af nominal expenditure **
 
     # a. Real wage 
-    wTH[:] = WTH/P
-    wNT[:] = WNT/P
+    wTH[:] = WTH/PNT #***
+    wNT[:] = WNT/PNT
 
     # b. phillips curve tradeable
     piWTH_plus = lead(piWTH,ss.piWTH)
 
     LHS = piWTH  
-    RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*WTH*UC_TH_hh) + beta*piWTH_plus        
-    # RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*wTH*UC_TH_hh) + beta*piWTH_plus        
+    # RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*WTH*UC_TH_hh) + beta*piWTH_plus        
+    RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*wTH*UC_TH_hh) + beta*piWTH_plus        
     NKWCT_res[:] = LHS-RHS # Target
 
     # c. phillips curve non-tradeable
     piWNT_plus = lead(piWNT,ss.piWNT)
 
     LHS = piWNT
-    # RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + beta*piWNT_plus
-    RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*WNT*UC_NT_hh) + beta*piWNT_plus
+    RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + beta*piWNT_plus
+    # RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*WNT*UC_NT_hh) + beta*piWNT_plus
     
     NKWCNT_res[:] = LHS-RHS # Target
 
