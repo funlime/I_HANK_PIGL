@@ -242,7 +242,7 @@ def find_ss(model, do_print=False):
     par.omega_T_ = ss.PNT * ss.CT_hh / ss.E_hh *ss.PNT
 
     # Average elicticity of substitution between tradable and non-tradable goods 
-    par.eta_T_RA = 1-par.gamma_-(par.omega_T_/(1-par.omega_T_))*(par.gamma_-par.epsilon_)
+    par.eta_T_RA = 1 - par.gamma_ - (par.nu*(ss.PT/ss.PNT)**par.gamma_) / ( (ss.EX/ss.PNT)**par.epsilon_ - par.nu*(ss.PT/ss.PNT)**par.gamma_) * (par.gamma_ - par.epsilon_)
 
 
 

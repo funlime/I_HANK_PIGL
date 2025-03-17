@@ -101,7 +101,7 @@ def prices(par,ini,ss,
     # c. PIGL Cost of living index for representative agents  (not used - look at first)
     # p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
     
-    # P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(-par.gamma_/par.epsilon_)
+    # P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(1-par.gamma_/par.epsilon_)
 
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
