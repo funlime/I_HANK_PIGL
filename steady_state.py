@@ -155,17 +155,28 @@ def obj_ss(x, model, do_print=False):
         ss.CB = ss.i
     
     # e. consumption
-
-    # Tradable and non-tradable consumption
+    # Calculate consumption out of HH block
+    
     ss.CT = ss.CT_hh # par.alphaT*ss.C_hh 
     ss.CNT = ss.CNT_hh #(1-par.alphaT)*ss.C_hh
 
-    # tradable goods and energy consumeption
-    ss.CTHF =ss.CTHF_hh 
-    ss.CE = ss.CE_hh 
+    # Energy and non-energy tradable consumption
+    ss.CE = par.alphaE*(ss.PE/ss.PT)**(-par.etaE)*ss.CT_hh
+    ss.CTHF = (1-par.alphaE)*(ss.PTHF/ss.PT)**(-par.etaE)*ss.CT_hh
 
-    ss.CTH =  ss.CTH_hh #(1-par.alphaF)*ss.CT
-    ss.CTF = ss.CTF_hh #par.alphaF*ss.CT
+    # Home and foreign tradable consumption
+    ss.CTF = par.alphaF*(ss.PF/ss.PTHF)**(-par.etaF)*ss.CTHF
+    ss.CTH = (1-par.alphaF)*(ss.PTH/ss.PTHF)**(-par.etaF)*ss.CTHF
+
+    # # Consumption calculated in HH block 
+    # # Tradable and non-tradable consumption
+
+    # # tradable goods and energy consumeption
+    # ss.CTHF =ss.CTHF_hh 
+    # ss.CE = ss.CE_hh 
+
+    # ss.CTH =  ss.CTH_hh #(1-par.alphaF)*ss.CT
+    # ss.CTF = ss.CTF_hh #par.alphaF*ss.CT
 
 
     # size of foreign market
