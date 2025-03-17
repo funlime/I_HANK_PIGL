@@ -39,7 +39,7 @@ def mon_pol(par,ini,ss,E,CB):
         E[:] = CB 
     else:
         E[:] = ss.E
-
+    
 @nb.njit
 def production(par,ini,ss,
                ZTH,ZNT,NTH,NNT,piWTH,piWNT,
@@ -68,6 +68,8 @@ def prices(par,ini,ss,
     PTH_s[:] = PTH/E
 
     PE[:] = PE_s*E
+
+
 
     # for t in range(par.T): 
     #     # if np.isnan(PTHF[t]):

@@ -59,7 +59,7 @@ def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, 
 
 
     # Non homothetic consumption of tradables and non tradables
-    ct[:] = e*p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
+    ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
     cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**(par.gamma_))
 
 
