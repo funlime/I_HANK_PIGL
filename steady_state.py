@@ -103,11 +103,12 @@ def obj_ss(x, model, do_print=False):
     ss.ZNT = 1.0
     ss.NTH = 1.0*par.sT
     ss.NNT = 1.0*(1-par.sT)
+  
     ss.N = ss.NTH + ss.NNT  
 
 
-    ss.n_NT = ss.NNT/par.sT
-    ss.n_TH = ss.NTH/(1-par.sT)
+    ss.n_TH = ss.NTH/par.sT
+    ss.n_NT = ss.NNT/(1-par.sT)
     
 
     # production
