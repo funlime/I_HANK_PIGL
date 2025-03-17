@@ -48,21 +48,36 @@ def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, 
         v_a = (1+ra)*e[i_fix]**(-( 1 - par.epsilon_ ) )
         vbeg_a[i_fix] = z_trans[i_fix]@v_a
 
+
     
     # extra output
     uc_TH[:] = 0.0
     uc_NT[:] = 0.0
 
+
+
+    # Non homothetic consumption of tradables and non tradables
+    # Second term in consumption demand 
+    # temp = par.nu_*e**(-par.epsilon_)*p**par.gamma_
+
+    # ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
+    # cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**par.gamma_)
+
     # Non-homothetic consumption of tradables and non tradables 
+    # ct[:] = e/p_*par.nu_*e**(-par.epsilon_)*p_**(par.gamma_) Helt forkert jo.....
+    # cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p_**par.gamma_)
     ct[:] = e*p_*par.nu_*e**(-par.epsilon_)*p_**(par.gamma_)
     cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p_**(par.gamma_))
-
+ 
+    # Tjeking budget constraint
+    # print(e*PNT - cnt*PNT - ct*PT)
 
     # CES share of tradable good (THF) and energy consumption agregate called T 
+
     ce[:] = par.alphaE*(PE/PT)**(-par.etaE)*ct
     cthf[:] = (1-par.alphaE)*(PTHF/PT)**(-par.etaE)*ct
 
-    # CES shares og home and foreign tradable goods
+    # CES shares og home and foreign tra
     ctf[:] = par.alphaF*(PF/PTHF)**(-par.etaF)*cthf
     cth[:] = (1-par.alphaF)*(PTH/PTHF)**(-par.etaF)*cthf
 
@@ -76,14 +91,23 @@ def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, 
         except:
             pass
 
+    
 
 
     for i_z in range(par.Nz):
         # Marginal utility of expenditure (not marginal utility of expenditure tilde)
         
         uc_TH[0,i_z,:] = e[0,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
-        uc_NT[1,i_z,:] = PNT*e[1,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
-        
+        uc_NT[1,i_z,:] = e[1,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+
+        # uc_TH[0,i_z,:] = PNT**(-par.epsilon_)*(PNT*e[0,i_z,:])**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+        # uc_NT[1,i_z,:] = PNT**(-par.epsilon_)*(PNT*e[1,i_z,:])**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+
+        # c_TH[0,i_z,:] = c[0,i_z,:]
+        # c_NT[1,i_z,:] = c[1,i_z,:]
+    # c_TH[:] /= par.sT
+    # c_NT[:] /= (1-par.sT)
+
     uc_TH[:] /= par.sT
     uc_NT[:] /= (1-par.sT)
 

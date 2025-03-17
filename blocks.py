@@ -69,11 +69,29 @@ def prices(par,ini,ss,
 
     PE[:] = PE_s*E
 
-
+    # for t in range(par.T): 
+    #     # if np.isnan(PTHF[t]):
+    #     #     print('PTHF is nan')
+    #     if np.isnan(PTH[t]):
+    #         print('PTH is nan')
+    #     if np.isnan(PF[t]):
+    #         print('PF is nan')
 
     # b. price indices
 
     PTHF[:] = price_index(PF,PTH,par.etaF,par.alphaF)
+
+    # for t in range(par.T): 
+    #     if np.isnan(PTHF[t]):
+    #         print('PTHF is nan')
+    #     if np.isnan(PTH[t]):
+    #         print('PTH is nan')
+    #     if np.isnan(PF[t]):
+    #         print('PF is nan')
+
+    # PT[:] = price_index(PTHF,PE,par.etaE,par.alphaE)
+
+    # Testing PTHF and PE is a number
 
 
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
@@ -112,8 +130,8 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i):
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
 
-        if par.mon_policy == 'real': #  i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
-
+        if par.mon_policy == 'real':
+#  i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
             i[:] = ss.i + pi_plus # Real rule
 
         if par.mon_policy == 'real_PNT':
@@ -165,14 +183,22 @@ def HH_pre(par,ini,ss,
     inc_NT[:] = (NNT*WNT*(1-tau))/PNT
     inc_TH[:] = (NTH*WTH*(1-tau))/PNT
 
-    # b. labor supply
+    # b. labor supply Wrong but works kinda
+    # n_NT[:] = NNT/par.sT
+    # n_TH[:] = NTH/(1-par.sT)
+
+    # b. labor supply correct but does not work.... ***
     n_NT[:] = NNT/(1-par.sT)
     n_TH[:] = NTH/par.sT
 
-    # b. relative prices
+    # b. Manual 
+    # n_NT[:] = NNT/(1-0.4995882080832822)
+    # n_TH[:] = NTH/0.4995882080832822
+
+    # c. relative prices
     p[:] = PT/PNT
 
-    #c. Interest rate
+    #d. Interest rate
     # o. last periods interest rate 
     lag_i = lag(ini.i,i)
 
@@ -221,14 +247,14 @@ def NKWCs(par,ini,ss,
     # SHOULD IT BE REAL WAGE? vi ser på marginal nytte af nominal expenditure **
 
     # a. Real wage 
-    wTH[:] = WTH/PNT #***
+    wTH[:] = WTH/PNT
     wNT[:] = WNT/PNT
 
     # b. phillips curve tradeable
     piWTH_plus = lead(piWTH,ss.piWTH)
 
     LHS = piWTH  
-    # RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*WTH*UC_TH_hh) + beta*piWTH_plus        
+
     RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*wTH*UC_TH_hh) + beta*piWTH_plus        
     NKWCT_res[:] = LHS-RHS # Target
 
@@ -237,7 +263,6 @@ def NKWCs(par,ini,ss,
 
     LHS = piWNT
     RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + beta*piWNT_plus
-    # RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*WNT*UC_NT_hh) + beta*piWNT_plus
     
     NKWCNT_res[:] = LHS-RHS # Target
 
