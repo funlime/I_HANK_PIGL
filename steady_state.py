@@ -73,7 +73,6 @@ def obj_ss(x, model, do_print=False):
 
     par.nu_ = x[0]
     par.sT = x[1]
-    ss.beta = par.beta
 
     # a. prices
 
@@ -126,7 +125,7 @@ def obj_ss(x, model, do_print=False):
 
     # c. household 
     ss.tau = par.tau_ss
-    ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH
+    ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH # Divid by PNT
     ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT 
     ss.INC = ss.inc =  ss.inc_TH + ss.inc_NT
 

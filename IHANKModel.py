@@ -22,14 +22,14 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         self.grids_hh = ['a'] # grids
         self.pols_hh = ['a'] # policy functions
         # self.inputs_hh = ['beta','ra', 'PT', 'PF', 'PTH', 'n_NT','n_TH', 'WNT','WTH', 'tau', 'PNT', 'PE','PTHF'] # direct inputs
-        self.inputs_hh = ['beta','ra',  'p', 'n_NT','n_TH', 'WNT','WTH', 'tau', 'PNT'] # direct inputs
+        self.inputs_hh = ['ra',  'p', 'n_NT','n_TH',  'inc_NT', 'inc_TH',] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
         # self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u', 'ce','cthf'] # outputs
         self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'u'] # outputs
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
 
         # c. GE
-        self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','beta','G','i_shock', 'PE_s', 'epsilon_i'] # exogenous inputs
+        self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','G','i_shock', 'PE_s', 'epsilon_i'] # exogenous inputs
         self.unknowns = ['CB','NNT','NTH','piWTH','piWNT'] # endogenous inputs
         self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res'] # targets
         

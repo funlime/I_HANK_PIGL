@@ -251,7 +251,7 @@ def HH_post(par,ini,ss,
 
 @nb.njit
 def NKWCs(par,ini,ss,
-          beta,piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
+          piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
 
     # SHOULD IT BE REAL WAGE? vi ser på marginal nytte af nominal expenditure **
 
@@ -264,14 +264,14 @@ def NKWCs(par,ini,ss,
 
     LHS = piWTH  
 
-    RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*wTH*UC_TH_hh) + beta*piWTH_plus        
+    RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
     NKWCT_res[:] = LHS-RHS # Target
 
     # c. phillips curve non-tradeable
     piWNT_plus = lead(piWNT,ss.piWNT)
 
     LHS = piWNT
-    RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + beta*piWNT_plus
+    RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
     
     NKWCNT_res[:] = LHS-RHS # Target
 

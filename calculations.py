@@ -79,8 +79,7 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     # Forigne energy price shock
         
     for t in range(T_max):
-        pi[t] = 0.1*rho**t
-
+        pi[t] = scale*rho**t
 
     # Prices
     for t in range(model.par.T):

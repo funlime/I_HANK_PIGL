@@ -13,7 +13,7 @@ def price_index(P1,P2,eta,alpha):
 
 @nb.njit       
 # def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf,  PT, PNT, PF, PTH, u, n_NT,n_TH, WNT,WTH, tau, ce, cthf , PE, PTHF):
-def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct,  PNT, u, n_NT,n_TH, WNT,WTH, tau, p ):
+def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc_TH,uc_NT, e, cnt, ct,   u, n_NT,n_TH,  p ):
 
     """ solve backwards with vbeg_a from previous iteration (here vbeg_a_plus) """
 
@@ -26,16 +26,16 @@ def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, 
 
             # i. income
             if i_fix == 0:
-                inc = (n_NT*WNT*(1-tau))/PNT
-                # inc = inc_TH/par.sT
+                # inc = (n_NT*WNT*(1-tau))/PNT
+                inc = inc_TH/par.sT
             else:
-                inc = (n_TH*WTH*(1-tau))/PNT
-                # inc = inc_NT/(1-par.sT)
+                # inc = (n_TH*WTH*(1-tau))/PNT
+                inc = inc_NT/(1-par.sT)
          
             z = par.z_grid[i_z]
 
             # ii. EGM
-            e_endo = (beta*vbeg_a_plus[i_fix,i_z])**(-1/(1- par.epsilon_ ) )
+            e_endo = (par.beta*vbeg_a_plus[i_fix,i_z])**(-1/(1- par.epsilon_ ) )
             m_endo = e_endo + par.a_grid
             
             # iii. interpolation to fixed grid
