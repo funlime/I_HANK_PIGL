@@ -60,7 +60,7 @@ def production(par,ini,ss,
 @nb.njit
 def prices(par,ini,ss,
            PF_s,E,PTH,PNT,
-           PF,PTH_s,PT,P, pi_F_s,pi_F,pi_NT,pi_TH,pi_T,pi,pi_TH_s, PE, PTHF, PE_s):
+           PF,PTH_s,PT,P, pi_F_s,pi_F,pi_NT,pi_TH,pi_T,pi,pi_TH_s, PE, PTHF, PE_s, Q):
     
     # a. convert curency
 
@@ -107,6 +107,9 @@ def prices(par,ini,ss,
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
     P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T_)
 
+    # c. real exchange rate
+    Q[:] = PF/P
+
 
 
     # d. inflation rates
@@ -121,20 +124,21 @@ def prices(par,ini,ss,
 
 
 @nb.njit
-def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i):
+def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i, r_real):
 
     # TBD: Add choice of which inflation to target
     # Agregate inflaiton, how to weight tradable and non tradable inflation 
-    # print(i_shock)
+
     # 1. setting interest rate
     if par.float == True: # taylor rule
+
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
 
         if par.mon_policy == 'real':
-#  i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
-            i[:] = ss.i + pi_plus # Real rule
+            i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
+            # i[:] = ss.i + pi_plus # Real rule
 
         if par.mon_policy == 'real_PNT':
 
@@ -148,6 +152,11 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i):
     else: # fixed exchange rate
         i[:] = CB
 
+        # ex ante
+    pi_plus = lead(pi,ss.pi)
+    r_real[:] = (1+i)/(1+pi_plus)-1
+
+    
     # TBD Add an terest rate in terms of general price level
 
 
@@ -189,13 +198,7 @@ def HH_pre(par,ini,ss,
     n_TH[:] = NTH/par.sT
     n_NT[:] = NNT/(1-par.sT)
 
-    # b. labor supply correct but does not work.... ***
-    # n_NT[:] = NNT/(1-par.sT)
-    # n_TH[:] = NTH/par.sT
 
-    # b. Manual 
-    # n_NT[:] = NNT/(1-0.4995882080832822)
-    # n_TH[:] = NTH/0.4995882080832822
 
     # c. relative prices
     p[:] = PT/PNT
@@ -231,10 +234,6 @@ def HH_post(par,ini,ss,
     CTF[:] = par.alphaF*(PF/PTHF)**(-par.etaF)*CTHF
     CTH[:] = (1-par.alphaF)*(PTH/PTHF)**(-par.etaF)*CTHF
 
-    # CTHF[:] = CTHF_hh
-    # CTF[:] = CTF_hh
-    # CTH[:] = CTH_hh
-    # CE[:] = CE_hh
 
     # c. Nominal expnediture  
     EX[:] = E_hh * PNT
@@ -253,7 +252,6 @@ def HH_post(par,ini,ss,
 def NKWCs(par,ini,ss,
           piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
 
-    # SHOULD IT BE REAL WAGE? vi ser på marginal nytte af nominal expenditure **
 
     # a. Real wage 
     wTH[:] = WTH/PNT
@@ -276,7 +274,7 @@ def NKWCs(par,ini,ss,
     NKWCNT_res[:] = LHS-RHS # Target
 
 @nb.njit
-def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s):
+def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s, r_real, Q):
 
     # a. expected future exchange rate
     E_plus = lead(E,ss.E)
@@ -287,10 +285,16 @@ def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s):
     iF_s[:] = (1+rF)*(1+pi_F_s_plus) - 1 # Nominal interest rate in foreign country, following the definition of pi_F_s
 
     # c. UIP
-    LHS = (1+i) # Domestic nominal interest rate
-    RHS = (1+iF_s)*E_plus/E # 
+    # LHS = (1+i) # Domestic nominal interest rate
+    # RHS = (1+iF_s)*E_plus/E # 
 
-    UIP_res[:] = LHS-RHS # Target
+    # UIP_res[:] = LHS-RHS # Target
+
+    Q_plus = lead(Q,ss.Q)
+
+    LHS = 1+r_real
+    RHS = (1+rF)*Q_plus/Q
+    UIP_res[:] = LHS-RHS
 
     # Real in terms of the general pris level 
 
@@ -333,8 +337,7 @@ def accounting(par,ini,ss,
     NFA_lag = lag(ini.NFA,NFA)
     
     # ooo. Current account
-    # CA[:] = NX + lag_i * NFA_lag# Current acount net exports this period should 
-    CA[:] = NX + iF_s_lag * NFA_lag*(E/E_lag)# Current acount net exports this period 
+    CA[:] = NX + lag_i * NFA_lag# Current acount net exports this period 
     
     # oooo. Walras law check
     Walras[:] = (NFA-NFA_lag) - CA

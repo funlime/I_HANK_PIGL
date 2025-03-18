@@ -93,7 +93,7 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     # dPE_s[100:model.par.T] = 0 #***
 
 
-    # Prices
+    # Energy price shock
     for t in range(50):
         if t==0:
             PE_calc[t] = 0.0
@@ -110,6 +110,13 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     PE_calc = np.fmax(PE_calc, 0.0)
 
     dPE_s = PE_calc
+
+
+    # Energy price shock
+    dPE_s[:] = 0
+    # inflation from period t to t+1
+    for t in range(T_max):
+        dPE_s[t] = scale*rho**t
 
 
 
