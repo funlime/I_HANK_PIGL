@@ -76,19 +76,41 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     for t in range(T_max):
         di_shock[t] = scale*rho**t
     
-    # Forigne energy price shock
+    # 3. Forigne energy price shock
         
-    for t in range(T_max):
-        pi[t] = scale*rho**t
+    # for t in range(T_max):
+    #     pi[t] = scale*rho**t
+
+    # # Prices
+    # for t in range(model.par.T):
+    #     if t==0:
+    #         PE_calc[t] = model.ss.PE_s*(1+pi[t])
+    #     else:
+    #         PE_calc[t] = PE_calc[t-1]*(1+pi[t])
+
+    # dPE_s = PE_calc- model.ss.PE_s
+
+    # dPE_s[100:model.par.T] = 0 #***
+
 
     # Prices
-    for t in range(model.par.T):
+    for t in range(50):
         if t==0:
-            PE_calc[t] = model.ss.PE_s*(1+pi[t])
+            PE_calc[t] = 0.0
         else:
-            PE_calc[t] = PE_calc[t-1]*(1+pi[t])
+            PE_calc[t] = -0.000012 * (t - 50)**2  + 0.000012 * (50)**2
 
-    dPE_s = PE_calc- model.ss.PE_s
+    for t in range(50, 300):
+        PE_calc[t] = 0.03
+
+    for t in range(300, model.par.T):
+        i = t-250
+        PE_calc[t] = -0.000012 * (i - 50)**2  + 0.000012 * (50)**2
+
+    PE_calc = np.fmax(PE_calc, 0.0)
+
+    dPE_s = PE_calc
+
 
 
     # Defining shocks 
