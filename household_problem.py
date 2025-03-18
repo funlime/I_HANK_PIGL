@@ -59,8 +59,18 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
 
 
     # Non homothetic consumption of tradables and non tradables
+
+    # Preferences 
+    # if par.PIGL == True:
     ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
     cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**(par.gamma_))
+
+
+    # CES preferences
+    # if par.PIGL == False:
+    
+    # else: 
+
 
 
 

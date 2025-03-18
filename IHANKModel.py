@@ -90,7 +90,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
           
         par.varphiTH = np.nan # disutility of labor in tradeable sector (determined in s)
         par.varphiNT = np.nan # disutility of labor in non-tradeable sector (determined in s)
-        par.nu = 1.0 # Frisch elasticity of labor supply
+        par.nu = 2.0 # Frisch elasticity of labor supply
               
         # c. income parameters
         par.rho_z = 0.95 # AR(1) parameter
@@ -102,7 +102,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
  
         # e. foreign Economy
         par.rF_ss = 0.005 # exogenous foreign interest rate
-        par.eta_s =  2.0 #*** # Armington elasticity of foreign demand
+        par.eta_s =  2.0 # # Armington elasticity of foreign demand
         par.M_s_ss = np.nan # size of foreign market (determined in ss)
 
         # f. government
