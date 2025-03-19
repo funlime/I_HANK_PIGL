@@ -99,13 +99,13 @@ def prices(par,ini,ss,
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
 
     # c. PIGL Cost of living index for representative agents  (not used - look at first)
-    # p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
+    p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
     
-    # P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(1-par.gamma_/par.epsilon_)
+    P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(1-par.gamma_/par.epsilon_)
 
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
-    P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T_)
+    # P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T_)
 
     # c. real exchange rate
     Q[:] = PF/P
@@ -311,7 +311,7 @@ def market_clearing(par,ini,ss,
 @nb.njit
 def accounting(par,ini,ss,
                PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra,
-               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH):
+               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau):
     
 
     # not in use     
@@ -344,7 +344,7 @@ def accounting(par,ini,ss,
 
     # For easier look at the results
     YH[:] = YNT+YTH
-    W[:] = (par.sT*WTH + (1-par.sT)*WNT)
+    W[:] = (par.sT*WTH + (1-par.sT)*WNT) #***
     w[:] = W/P # Tjeck what P is 
     N[:] = NNT+NTH
     INC[:] = (inc_NT + inc_TH)*PNT

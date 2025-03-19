@@ -69,6 +69,7 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
     # CES preferences
     # if par.PIGL == False:
     
+    
     # else: 
 
 
@@ -101,8 +102,9 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
         u[:] = 0.0
     if par.run_u == True:
         try:
+
             u[0,:,:]=  (1/par.epsilon_) * ( (e[0,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  -  par.varphiTH*(n_TH**(1+par.nu))/ (1+par.nu)
-            u[1,:,:]=  (1/par.epsilon_) * ( (e[1,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  - par.varphiNT*(n_NT**(1+par.nu))/ (1+par.nu) 
+            u[1,:,:]=   (1/par.epsilon_) * ( (e[1,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  - par.varphiNT*(n_NT**(1+par.nu))/ (1+par.nu) 
         except:
             pass
 

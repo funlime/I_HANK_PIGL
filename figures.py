@@ -134,3 +134,46 @@ def plot_cum(models, varnames, ncols= 3, xlim= [], print_gini = False, title= No
         # ax.set_ylabel('Cumulative Probability')
         # ax.set_title('Cumulative Distribution Function (CDF) of ' + var)
         ax.grid(True)
+
+
+
+
+# Plot shock
+def plot_PE_s(model):
+    PE_s = (model.path.PE_s / model.ss.PE_s-1)*100
+
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(PE_s, label='PE_s')
+    ax.set_title(f'Golabal energy price shock $P_E^*$')
+    ax.set_xlim(0, 40)
+    ax.set_xlabel('Quarters')
+    ax.set_ylabel('Percent increas')
+    plt.tight_layout()
+    return fig
+
+# Ploting jacobians wrt ptilde
+def plot_jac_p(model):
+
+   fig = plt.figure(figsize=(15, 5))
+
+   ax = fig.add_subplot(1,2,1)
+   ax.set_title(r'Consumption of tradables wrt $\tilde p$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CT_hh', 'p')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_T$')
+
+   ax = fig.add_subplot(1,2,2)
+   ax.set_title(r'Consumption of Non-tradables wrt $\tilde p$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CNT_hh', 'p')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_{NT}$')
+   ax.set_xlabel('Quarters')
+
+   # legende outside box
+   plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+   plt.tight_layout()
+
+   return fig
