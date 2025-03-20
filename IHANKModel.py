@@ -29,7 +29,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
 
         # c. GE
-        self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','G','i_shock', 'PE_s', 'epsilon_i'] # exogenous inputs
+        self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','G','i_shock', 'PE_s'] # exogenous inputs
         self.unknowns = ['CB','NNT','NTH','piWTH','piWNT'] # endogenous inputs
         self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res'] # targets
         
@@ -61,18 +61,19 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par = self.par
 
         # New 
-        par.epsilon_ = 0.18 # controls the degree of non-homotheticity 
-        par.gamma_ = 0.29 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
-        par.nu_ = 0.475 # Scalling parameter
-        par.omega_T_ = np.nan # agregate expenditure share on tradables in steady state
+        par.epsilon = 0.18 # controls the degree of non-homotheticity 
+        par.gamma = 0.29 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
+        par.nu = 0.475 # Scalling parameter
+        par.omega_T = np.nan # agregate expenditure share on tradables in steady state
         par.run_u = False
         par.mon_policy = 'real'
         par.pf_fixed = True
         par.etaE = 0.1 # elasticity of substitution between tradable goods and energy 
         par.alphaE = 0.05 # share of energy in tradable + energy consumption
         par.eta_T_RA = np.nan
-        par.phi_inflation = 1.0
+        # par.phi_inflation = 1.0
         par.sNT = np.nan # share of Workers in the non-tradable sector - determined in ss
+        par.pref = 'PIGL' # 'PIGL' or 'Cuub douglas'
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors
@@ -91,14 +92,14 @@ class IHANKModelClass(EconModelClass,GEModelClass):
           
         par.varphiTH = np.nan # disutility of labor in tradeable sector (determined in s)
         par.varphiNT = np.nan # disutility of labor in non-tradeable sector (determined in s)
-        par.nu = 2.0 # Frisch elasticity of labor supply
+        par.kappa = 2.0 # Frisch elasticity of labor supply
               
         # c. income parameters
         par.rho_z = 0.95 # AR(1) parameter
         par.sigma_psi = 0.10 # std. of psi
         
         # d. price setting
-        par.kappa = 0.1 # slope of wage Phillips curve
+        par.kappa_w = 0.1 # slope of wage Phillips curve
         par.muw = 1.2 # wage mark-up       
  
         # e. foreign Economy

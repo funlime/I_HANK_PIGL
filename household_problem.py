@@ -35,7 +35,7 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
             z = par.z_grid[i_z]
 
             # ii. EGM
-            e_endo = (par.beta*vbeg_a_plus[i_fix,i_z])**(-1/(1- par.epsilon_ ) )
+            e_endo = (par.beta*vbeg_a_plus[i_fix,i_z])**(-1/(1- par.epsilon ) )
             m_endo = e_endo + par.a_grid
             
             # iii. interpolation to fixed grid
@@ -47,7 +47,7 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
 
 
         # b. expectation step
-        v_a = (1+ra)*e[i_fix]**(-( 1 - par.epsilon_ ) )
+        v_a = (1+ra)*e[i_fix]**(-( 1 - par.epsilon ) )
         vbeg_a[i_fix] = z_trans[i_fix]@v_a
 
 
@@ -61,13 +61,25 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
     # Non homothetic consumption of tradables and non tradables
 
     # Preferences 
-    # if par.PIGL == True:
-    ct[:] = e * (p**(-1))  *  par.nu_*  e**(-par.epsilon_)  *p**(par.gamma_)
-    cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**(par.gamma_))
+    if par.pref == 'PIGL':
+        ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
+        cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
+
+    elif par.pref == 'CUBB_douglas': # Change to CD
+        ct[:] = e*p**(-1)*par.nu
+        cnt[:] = e*(1-par.nu)
+    
+    elif par.pref == 'homothetic':
+        ct[:] = e * (p**(-1))  *  par.nu *p**(par.gamma)
+        cnt[:] = e*(1-par.nu*p**(par.gamma))
 
 
+        # ct[:] = e*p**(-1)*par.nu*p**par.gamma
+        # cnt[:] = e*(1-par.nu*p**par.gamma)
 
-    # CES preferences
+    else:
+        raise NotImplementedError('Only PIGL and Cubb douglas preferences are implemented')
+    # Cubb douglas
     # if par.PIGL == False:
 
     
@@ -77,14 +89,14 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
 
 
     # Second term in consumption demand 
-    # temp = par.nu_*e**(-par.epsilon_)*p**par.gamma_
+    # temp = par.nu*e**(-par.epsilon)*p**par.gamma
 
-    # ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
-    # cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**par.gamma_)
+    # ct[:] = e/p*par.nu*e**(-par.epsilon)*p**(par.gamma)
+    # cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**par.gamma)
 
     # Non-homothetic consumption of tradables and non tradables 
-    # ct[:] = e/p_*par.nu_*e**(-par.epsilon_)*p_**(par.gamma_) Helt forkert jo.....
-    # cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p_**par.gamma_)
+    # ct[:] = e/p_*par.nu*e**(-par.epsilon)*p_**(par.gamma) Helt forkert jo.....
+    # cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p_**par.gamma)
  
     # Tjeking budget constraint
     # print(e*PNT - cnt*PNT - ct*PT)
@@ -104,8 +116,8 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
     if par.run_u == True:
         try:
 
-            u[0,:,:]=  (1/par.epsilon_) * ( (e[0,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  -  par.varphiTH*(n_TH**(1+par.nu))/ (1+par.nu)
-            u[1,:,:]=   (1/par.epsilon_) * ( (e[1,:,:])**par.epsilon_ -1) - (par.nu_/par.gamma_)*( (p)**par.gamma_ -1)  - par.varphiNT*(n_NT**(1+par.nu))/ (1+par.nu) 
+            u[0,:,:]=  (1/par.epsilon) * ( (e[0,:,:])**par.epsilon -1) - (par.nu/par.gamma)*( (p)**par.gamma -1)  -  par.varphiTH*(n_TH**(1+par.kappa))/ (1+par.kappa)
+            u[1,:,:]=   (1/par.epsilon) * ( (e[1,:,:])**par.epsilon -1) - (par.nu/par.gamma)*( (p)**par.gamma -1)  - par.varphiNT*(n_NT**(1+par.kappa))/ (1+par.kappa) 
         except:
             pass
 
@@ -115,11 +127,11 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
     for i_z in range(par.Nz):
         # Marginal utility of expenditure (not marginal utility of expenditure tilde)
         
-        uc_TH[0,i_z,:] = e[0,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
-        uc_NT[1,i_z,:] = e[1,i_z,:]**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+        uc_TH[0,i_z,:] = e[0,i_z,:]**(-(1- par.epsilon ) )*par.z_grid[i_z]
+        uc_NT[1,i_z,:] = e[1,i_z,:]**(-(1- par.epsilon ) )*par.z_grid[i_z]
 
-        # uc_TH[0,i_z,:] = PNT**(-par.epsilon_)*(PNT*e[0,i_z,:])**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
-        # uc_NT[1,i_z,:] = PNT**(-par.epsilon_)*(PNT*e[1,i_z,:])**(-(1- par.epsilon_ ) )*par.z_grid[i_z]
+        # uc_TH[0,i_z,:] = PNT**(-par.epsilon)*(PNT*e[0,i_z,:])**(-(1- par.epsilon ) )*par.z_grid[i_z]
+        # uc_NT[1,i_z,:] = PNT**(-par.epsilon)*(PNT*e[1,i_z,:])**(-(1- par.epsilon ) )*par.z_grid[i_z]
 
         # c_TH[0,i_z,:] = c[0,i_z,:]
         # c_NT[1,i_z,:] = c[1,i_z,:]

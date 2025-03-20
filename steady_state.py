@@ -48,7 +48,7 @@ def prepare_hh_ss(model):
 
     v_a = np.zeros((par.Nfix,par.Nz,par.Na))
     
-    # CHANGE TO NEW FUNCTIONIONAL FORM 
+    # CHANGE TO NEW FUNCTIONIONAL FORM ****
     for i_fix in range(par.Nfix):
         for i_z in range(par.Nz):
 
@@ -71,7 +71,7 @@ def obj_ss(x, model, do_print=False):
     par = model.par
     ss = model.ss
 
-    par.nu_ = x[0]
+    par.nu = x[0]
     par.sT = x[1]
 
     # a. prices
@@ -90,7 +90,7 @@ def obj_ss(x, model, do_print=False):
     # real+nominal interest rates are equal to foreign interest rate
     ss.ra = ss.i = ss.iF_s = ss.r_real = ss.rF = par.rF_ss
     ss.UIP_res = 0.0
-    ss.epsilon_i = 0.0
+
 
 
     # domestic interes rate shock:
@@ -205,8 +205,8 @@ def obj_ss(x, model, do_print=False):
     ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
     ss.w = ss.W/ss.P
 
-    par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.nu)
-    par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.nu)
+    par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
+    par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
     ss.NKWCT_res = 0.0
     ss.NKWCNT_res = 0.0
 
@@ -240,11 +240,11 @@ def find_ss(model, do_print=False):
     obj_ss(res.x, model)
 
     # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes
-    par.omega_T_ = ss.PNT * ss.CT_hh / ss.E_hh *ss.PNT
-    print(f'Average share of consumption of tradables{par.omega_T_ = :.3f}')
+    par.omega_T = par.nu *ss.E**(-par.epsilon)*ss.p**(par.gamma) # *** Doublet tjek formel
+    print(f'Average share of consumption of tradables{par.omega_T = :.3f}')
 
     # Average elicticity of substitution between tradable and non-tradable goods 
-    par.eta_T_RA = 1 - par.gamma_ - (par.nu_*(ss.PT/ss.PNT)**par.gamma_) / ( (ss.EX/ss.PNT)**par.epsilon_ - par.nu_*(ss.PT/ss.PNT)**par.gamma_) * (par.gamma_ - par.epsilon_)
+    par.eta_T_RA = 1 - par.gamma - (par.nu*(ss.PT/ss.PNT)**par.gamma) / ( (ss.EX/ss.PNT)**par.epsilon - par.nu*(ss.PT/ss.PNT)**par.gamma) * (par.gamma - par.epsilon)
     print(f'Average elasticity of substitution between tradable and non-tradable goods{par.eta_T_RA = :.3f}')
 
 
@@ -254,7 +254,7 @@ def find_ss(model, do_print=False):
         print(f'steady state found in {elapsed(t0)}')
         print(f'{ss.inc_TH = :.3f}')
         print(f'{ss.inc_NT = :.3f}')
-        print(f'{par.nu_ = :.3f}')
+        print(f'{par.nu = :.3f}')
         print(f'{par.alphaF = :.3f}')
         print(f'{par.varphiTH = :.3f}')
         print(f'{par.varphiNT = :.3f}')

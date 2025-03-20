@@ -99,13 +99,13 @@ def prices(par,ini,ss,
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
 
     # c. PIGL Cost of living index for representative agents  (not used - look at first)
-    p_tilde = ((1-(par.epsilon_*par.omega_T_)/par.gamma_)*PNT**par.gamma_ + ((par.epsilon_*par.omega_T_)/par.gamma_)*PT**par.gamma_)**(1/par.gamma_)
+    p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
     
-    P[:] = p_tilde**(par.gamma_/par.epsilon_)*PNT**(1-par.gamma_/par.epsilon_)
+    P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
 
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
-    # P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T_)
+    # P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T)
 
     # c. real exchange rate
     Q[:] = PF/P
@@ -124,7 +124,7 @@ def prices(par,ini,ss,
 
 
 @nb.njit
-def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i, r_real):
+def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real):
 
     # TBD: Add choice of which inflation to target
     # Agregate inflaiton, how to weight tradable and non tradable inflation 
@@ -137,7 +137,7 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i, r_real):
 
 
         if par.mon_policy == 'real':
-            i[:] = ss.i + par.phi_inflation*pi_plus + i_shock  # Real rule
+            i[:] = ss.i + par.phi*pi_plus + i_shock  # Real rule
             # i[:] = ss.i + pi_plus # Real rule
 
         if par.mon_policy == 'real_PNT':
@@ -149,7 +149,8 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i, r_real):
             i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
 
 
-    else: # fixed exchange rate
+    else:
+
         i[:] = CB
 
         # ex ante
@@ -268,6 +269,8 @@ def HH_post(par,ini,ss,
     
     if par.pf_fixed == False:
         CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
+    print(CT)
+    
 
 
 
@@ -285,14 +288,14 @@ def NKWCs(par,ini,ss,
 
     LHS = piWTH  
 
-    RHS = par.kappa*(par.varphiTH*(NTH/par.sT)**par.nu-1/par.muw*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
+    RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.muw*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
     NKWCT_res[:] = LHS-RHS # Target
 
     # c. phillips curve non-tradeable
     piWNT_plus = lead(piWNT,ss.piWNT)
 
     LHS = piWNT
-    RHS = par.kappa*(par.varphiNT*(NNT/par.sNT)**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
+    RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.muw*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
     
     NKWCNT_res[:] = LHS-RHS # Target
 

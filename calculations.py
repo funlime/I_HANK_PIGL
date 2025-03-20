@@ -73,8 +73,8 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
 
 
     # Domestic interest rate shock      
-    for t in range(T_max):
-        di_shock[t] = -scale*rho**t
+    for t in range(15):
+        di_shock[t] = +0.05*rho**t
     
     # 3. Forigne energy price shock
         
