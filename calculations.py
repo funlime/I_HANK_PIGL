@@ -74,7 +74,7 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
 
     # Domestic interest rate shock      
     for t in range(T_max):
-        di_shock[t] = scale*rho**t
+        di_shock[t] = -scale*rho**t
     
     # 3. Forigne energy price shock
         
@@ -90,10 +90,10 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
 
     dPE_s = PE_calc- model.ss.PE_s
 
-    # dPE_s[100:model.par.T] = 0 #***
+    dPE_s[100:model.par.T] = 0 #***
 
 
-    # # Energy price shock
+    # Energy price shock - increasing then decreasing
     # for t in range(50):
     #     if t==0:
     #         PE_calc[t] = 0.0
@@ -112,7 +112,7 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     # dPE_s = PE_calc
 
 
-    # Energy price shock
+    # Energy price shock - AR(1) shock 
     dPE_s[:] = 0
     # inflation from period t to t+1
     for t in range(T_max):
@@ -127,10 +127,11 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     shock_PE_s = {'dPE_s':dPE_s}
     shock_PE_PF = {'dPE_s':dPE_s, 'dPF_s':dPF_s}
     shock_PE_PF_taylor = {'dPE_s':dPE_s, 'dPF_s':dPF_s, 'drF':drF}
-    shock_i = {'depsilon_i':depsilon_i}
+    # shock_i = {'depsilon_i':depsilon_i}
     shock_i = {'di_shock':di_shock}
+    shock_PE_i = {'dPE_s':dPE_s, 'di_shock':di_shock}
 
-    return [shock_PE_s, shock_forigne_interest, shock_PF_s, shock_PF_s_taylor, shock_PE_PF, shock_PE_PF_taylor, shock_i]
+    return [shock_PE_i, shock_PE_s, shock_forigne_interest, shock_PF_s, shock_PF_s_taylor, shock_PE_PF, shock_PE_PF_taylor, shock_i]
 
 
 

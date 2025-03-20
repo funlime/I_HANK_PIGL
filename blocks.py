@@ -162,6 +162,28 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, epsilon_i, r_real):
 
 
 @nb.njit
+# def government(par,ini,ss,
+#                PNT,NTH,NNT,G,B,tau, WTH, WNT, i):
+
+#     for t in range(par.T): 
+    
+#     # a. nominal interest on last period bonds and last period nominal bonds
+#         lag_i = prev(i,t,ini.i)  
+#         B_lag = prev(B,t,ini.B)  
+
+#     # b. government budget
+        
+#         # o. nomnial tax base
+#         tax_base =  WTH[t]*NTH[t]+WNT[t]*NNT[t]  
+ 
+#         # oo. tax rates following tax rule 
+#         # tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/PNT[t])/(ss.YTH+ss.YNT) # ***
+#         tau[t] = ss.tau + par.omega*(B_lag/PNT[t-1]-ss.B/PNT[t])/(ss.YTH+ss.YNT)
+
+#         # ooo. current nominal bonds from governmetn budget constraint
+#         B[t] = (1+lag_i)*B_lag + PNT[t]*G[t]-tau[t]*tax_base
+
+
 def government(par,ini,ss,
                PNT,NTH,NNT,G,B,tau, WTH, WNT, i):
 
@@ -177,7 +199,8 @@ def government(par,ini,ss,
         tax_base =  WTH[t]*NTH[t]+WNT[t]*NNT[t]  
  
         # oo. tax rates following tax rule 
-        tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/PNT[t])/(ss.YTH+ss.YNT) 
+        # tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/PNT[t])/(ss.YTH+ss.YNT) # ***
+        tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/ss.PNT)/(ss.YTH+ss.YNT)
 
         # ooo. current nominal bonds from governmetn budget constraint
         B[t] = (1+lag_i)*B_lag + PNT[t]*G[t]-tau[t]*tax_base
@@ -196,7 +219,7 @@ def HH_pre(par,ini,ss,
 
     # b. labor supply Wrong but works kinda
     n_TH[:] = NTH/par.sT
-    n_NT[:] = NNT/(1-par.sT)
+    n_NT[:] = NNT/par.sNT
 
 
 
@@ -269,7 +292,7 @@ def NKWCs(par,ini,ss,
     piWNT_plus = lead(piWNT,ss.piWNT)
 
     LHS = piWNT
-    RHS = par.kappa*(par.varphiNT*(NNT/(1-par.sT))**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
+    RHS = par.kappa*(par.varphiNT*(NNT/par.sNT)**par.nu-1/par.muw*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
     
     NKWCNT_res[:] = LHS-RHS # Target
 
@@ -344,7 +367,7 @@ def accounting(par,ini,ss,
 
     # For easier look at the results
     YH[:] = YNT+YTH
-    W[:] = (par.sT*WTH + (1-par.sT)*WNT) #***
+    W[:] = (par.sT*WTH + par.sNT*WNT) #***
     w[:] = W/P # Tjeck what P is 
     N[:] = NNT+NTH
     INC[:] = (inc_NT + inc_TH)*PNT

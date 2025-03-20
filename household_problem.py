@@ -30,7 +30,7 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
                 inc = inc_TH/par.sT
             else:
                 # inc = (n_TH*WTH*(1-tau))/PNT
-                inc = inc_NT/(1-par.sT)
+                inc = inc_NT/par.sNT #(1-par.sT)
          
             z = par.z_grid[i_z]
 
@@ -62,13 +62,14 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
 
     # Preferences 
     # if par.PIGL == True:
-    ct[:] = e/p*par.nu_*e**(-par.epsilon_)*p**(par.gamma_)
+    ct[:] = e * (p**(-1))  *  par.nu_*  e**(-par.epsilon_)  *p**(par.gamma_)
     cnt[:] = e*(1-par.nu_*e**(-par.epsilon_)*p**(par.gamma_))
+
 
 
     # CES preferences
     # if par.PIGL == False:
-    
+
     
     # else: 
 

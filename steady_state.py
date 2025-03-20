@@ -102,8 +102,9 @@ def obj_ss(x, model, do_print=False):
     ss.ZTH = 1.0
     ss.ZNT = 1.0
     ss.NTH = 1.0*par.sT
-    ss.NNT = 1.0*(1-par.sT)
-  
+
+    ss.NNT = par.sNT = 1.0*(1-par.sT)
+
     ss.N = ss.NTH + ss.NNT  
 
 
@@ -240,10 +241,11 @@ def find_ss(model, do_print=False):
 
     # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes
     par.omega_T_ = ss.PNT * ss.CT_hh / ss.E_hh *ss.PNT
+    print(f'Average share of consumption of tradables{par.omega_T_ = :.3f}')
 
     # Average elicticity of substitution between tradable and non-tradable goods 
     par.eta_T_RA = 1 - par.gamma_ - (par.nu_*(ss.PT/ss.PNT)**par.gamma_) / ( (ss.EX/ss.PNT)**par.epsilon_ - par.nu_*(ss.PT/ss.PNT)**par.gamma_) * (par.gamma_ - par.epsilon_)
-
+    print(f'Average elasticity of substitution between tradable and non-tradable goods{par.eta_T_RA = :.3f}')
 
 
     # d. print

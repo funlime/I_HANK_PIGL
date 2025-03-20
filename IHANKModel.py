@@ -72,11 +72,12 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.alphaE = 0.05 # share of energy in tradable + energy consumption
         par.eta_T_RA = np.nan
         par.phi_inflation = 1.0
+        par.sNT = np.nan # share of Workers in the non-tradable sector - determined in ss
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors
         par.Nz = 7 # idiosyncratic productivity
-        par.sT = 0.25 # share of workers in tradeable sector
+        par.sT = np.nan # share of workers in tradeable sector
 
         # b. preferences
         par.beta = 0.985 #0.975 # discount factor
