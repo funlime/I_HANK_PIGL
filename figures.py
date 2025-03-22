@@ -153,9 +153,12 @@ def plot_PE_s(model):
     return fig
 
 # Ploting jacobians wrt ptilde
-def plot_jac_p(model):
+def plot_jac_p(model, title = None):
 
    fig = plt.figure(figsize=(15, 5))
+   # tittle
+   if title != None:
+      fig.suptitle(title)
 
    ax = fig.add_subplot(1,2,1)
    ax.set_title(r'Consumption of tradables wrt $\tilde p$')

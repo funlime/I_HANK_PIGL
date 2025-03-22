@@ -4,6 +4,7 @@ import numpy as np
 import numba as nb
 
 from consav.linear_interp import interp_1d_vec
+import math
 
 @nb.njit
 def price_index(P1,P2,eta,alpha):
@@ -13,7 +14,7 @@ def price_index(P1,P2,eta,alpha):
 
 @nb.njit       
 # def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf,  PT, PNT, PF, PTH, u, n_NT,n_TH, WNT,WTH, tau, ce, cthf , PE, PTHF):
-def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc_TH,uc_NT, e, cnt, ct,   u, n_NT,n_TH,  p ):
+def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc_TH,uc_NT, e, cnt, ct,   u, n_NT,n_TH,  p , v):
 
     """ solve backwards with vbeg_a from previous iteration (here vbeg_a_plus) """
 
@@ -47,8 +48,18 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
 
 
         # b. expectation step
+        # Marginal utility of expenditure 
         v_a = (1+ra)*e[i_fix]**(-( 1 - par.epsilon ) )
         vbeg_a[i_fix] = z_trans[i_fix]@v_a
+
+        # 
+        # if par.run_u == True:
+        #     print('Running u')
+            # if math.isclose(par.epsilon,0):
+            #     print(' epsilon is close to 0')
+            #     v_ = (1/par.epsilon) * ( (e[0,:,:])**par.epsilon -1) - (par.nu/par.gamma)*( (p)**par.gamma -1)  -  par.varphiTH*(n_TH**(1+par.kappa))/ (1+par.kappa)
+            #     v[i_fix] = z_trans[i_fix]@v_ # Skal det divideres med beta 
+
 
 
     

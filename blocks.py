@@ -135,10 +135,10 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real):
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
+ 
+        if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
+            i[:] = ss.i + par.phi*pi_plus + i_shock  # Taylor rule 
 
-        if par.mon_policy == 'real':
-            i[:] = ss.i + par.phi*pi_plus + i_shock  # Real rule
-            # i[:] = ss.i + pi_plus # Real rule
 
         if par.mon_policy == 'real_PNT':
 
@@ -269,7 +269,6 @@ def HH_post(par,ini,ss,
     
     if par.pf_fixed == False:
         CTH_s[:] = (PTH_s/PF_s)**(-par.eta_s)*M_s
-    print(CT)
     
 
 

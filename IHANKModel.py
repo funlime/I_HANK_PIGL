@@ -25,7 +25,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         self.inputs_hh = ['ra',  'p', 'n_NT','n_TH',  'inc_NT', 'inc_TH',] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
         # self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u', 'ce','cthf'] # outputs
-        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'u'] # outputs
+        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'u', 'v'] # outputs
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
 
         # c. GE
@@ -66,7 +66,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.nu = 0.475 # Scalling parameter
         par.omega_T = np.nan # agregate expenditure share on tradables in steady state
         par.run_u = False
-        par.mon_policy = 'real'
+        par.mon_policy = 'taylor'
         par.pf_fixed = True
         par.etaE = 0.1 # elasticity of substitution between tradable goods and energy 
         par.alphaE = 0.05 # share of energy in tradable + energy consumption
@@ -150,7 +150,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         
         par.max_iter_solve = 50_000 # maximum number of iterations when solving
         par.max_iter_simulate = 50_000 # maximum number of iterations when simulating
-        par.max_iter_broyden = 100 # maximum number of iteration when solving eq. system
+        par.max_iter_broyden = 500#100 # maximum number of iteration when solving eq. system
         
         par.tol_ss = 1e-12 # tolerance when finding steady state
         par.tol_solve = 1e-12 # tolerance when solving
