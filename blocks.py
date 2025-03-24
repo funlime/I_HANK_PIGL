@@ -251,14 +251,14 @@ def NKWCs(par,ini,ss,
 
     LHS = piWTH  
 
-    RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.muw*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
+    RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.mu_w*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
     NKWCT_res[:] = LHS-RHS # Target
 
     # c. phillips curve non-tradeable
     piWNT_plus = lead(piWNT,ss.piWNT)
 
     LHS = piWNT
-    RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.muw*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
+    RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.mu_w*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
     
     NKWCNT_res[:] = LHS-RHS # Target
 

@@ -205,8 +205,8 @@ def obj_ss(x, model, do_print=False):
     ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
     ss.w = ss.W/ss.P
 
-    par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
-    par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
+    par.varphiTH = 1/par.mu_w*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
+    par.varphiNT = 1/par.mu_w*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
     ss.NKWCT_res = 0.0
     ss.NKWCNT_res = 0.0
 

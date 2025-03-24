@@ -99,9 +99,14 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.sigma_psi = 0.10 # std. of psi
         
         # d. price setting
-        par.kappa_w = 0.1 # slope of wage Phillips curve
-        par.muw = 1.2 # wage mark-up       
+        # NKWPC
+        par.kappa_w = 0.05 # slope of wage Phillips curve
+        par.mu_w = 1.2 # wage mark-up       
  
+        # NKPC
+        par.kappa_p = 0.1 # slope of price Phillips curve
+        par.mu_p = 1.2 # wage mark-down
+
         # e. foreign Economy
         par.rF_ss = 0.005 # exogenous foreign interest rate
         par.eta_s =  2.0 # # Armington elasticity of foreign demand
