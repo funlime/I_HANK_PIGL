@@ -22,7 +22,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         self.grids_hh = ['a'] # grids
         self.pols_hh = ['a'] # policy functions
         # self.inputs_hh = ['beta','ra', 'PT', 'PF', 'PTH', 'n_NT','n_TH', 'WNT','WTH', 'tau', 'PNT', 'PE','PTHF'] # direct inputs
-        self.inputs_hh = ['ra',  'p', 'n_NT','n_TH',  'inc_NT', 'inc_TH',] # direct inputs
+        self.inputs_hh = ['ra',  'p', 'n_NT','n_TH',  'inc_NT', 'inc_TH','d'] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
         # self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u', 'ce','cthf'] # outputs
         self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'u', 'v'] # outputs
@@ -30,8 +30,8 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         # c. GE
         self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','G','i_shock', 'PE_s'] # exogenous inputs
-        self.unknowns = ['CB','NNT','NTH','piWTH','piWNT'] # endogenous inputs
-        self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res'] # targets
+        self.unknowns = ['CB','NNT','NTH','piWTH','piWNT', 'pi_TH', 'pi_NT'] # endogenous inputs
+        self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res', 'NKPCTH_res', 'NKPCNT_res'] # targets
         
         # d. all variables
         self.blocks = [
@@ -41,6 +41,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
             # 'blocks.inflation', 
             'blocks.central_bank',
             'blocks.government',
+            'blocks.intermediary_goods',
             'blocks.HH_pre',
             'hh',
             'blocks.HH_post',
@@ -74,6 +75,8 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # par.phi_inflation = 1.0
         par.sNT = np.nan # share of Workers in the non-tradable sector - determined in ss
         par.pref = 'PIGL' # 'PIGL' or 'Cuub douglas'
+        par.kappa_p = 0.05 # Slope of the Price philips curve
+        par.mu_p = 1.2 # markup
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors

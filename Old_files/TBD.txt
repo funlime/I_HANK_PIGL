@@ -1,14 +1,5 @@
 TBD 
 
-Biggest: 
-Why does nothing happen when exchange rates are floating? 
-
-Larger: 
-Figure out which shock to do shock
 
 
-
-Smaller: 
-Add utility calculation to HH problem. 
-Finalize correct names for variables/ final variable list 
-Finalize parameter names 
+write Gov block/var in real terms 

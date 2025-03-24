@@ -73,24 +73,20 @@ def obj_ss(x, model, do_print=False):
 
     par.nu = x[0]
     par.sT = x[1]
+ 
 
     # a. prices
 
     # normalzied to 1
-    # for varname in ['PF_s','E','PF','PTH','PT','PNT','P','PTH_s','Q']:
     for varname in ['PF_s','E','PF','PTH','PT','P','PTH_s', 'p', 'PNT','P', 'PE', 'PTHF', 'PE_s', 'Q']:
         ss.__dict__[varname] = 1.0
 
-    
-    
     # zero inflation
     for varname in ['pi_F_s','pi_F','pi_TH','pi_T','pi_NT','pi','pi_TH_s','piWTH','piWNT']:
         ss.__dict__[varname] = 0.0
 
     # real+nominal interest rates are equal to foreign interest rate
     ss.ra = ss.i = ss.iF_s = ss.r_real = ss.rF = par.rF_ss
-    ss.UIP_res = 0.0
-
 
 
     # domestic interes rate shock:
@@ -99,39 +95,51 @@ def obj_ss(x, model, do_print=False):
     # b. production
 
     # normalize TFP and labor
-    ss.ZTH = 1.0
-    ss.ZNT = 1.0
+    # Setting TFP to the inverse of price mark-down to get W = 1
+    ss.ZTH = par.mu_p 
+    ss.ZNT = par.mu_p  # *****
+
     ss.NTH = 1.0*par.sT
-
     ss.NNT = par.sNT = 1.0*(1-par.sT)
-
     ss.N = ss.NTH + ss.NNT  
 
 
     ss.n_TH = ss.NTH/par.sT
-    ss.n_NT = ss.NNT/(1-par.sT)
+    ss.n_NT = ss.NNT/par.sNT
     
-
     # production
     ss.YTH = ss.ZTH*ss.NTH
     ss.YNT = ss.ZNT*ss.NNT
+
+
+    # Wage in steady state mark-down relative to production
+    ss.WTH = ss.ZTH/par.mu_p
+    ss.WNT = ss.ZNT/par.mu_p
+
+    ss.adjcost_TH = 0.0
+    ss.adjcost_NT = 0.0
+
+    ss.d_TH = ss.YTH - ss.WTH*ss.NTH - ss.adjcost_TH
+    ss.d_NT = ss.YNT - ss.WNT*ss.NNT - ss.adjcost_NT
+
+    ss.d = ss.d_TH + ss.d_NT
 
     # real = nominal wages = value of mpl **** fixed 
     # ss.wTH = ss.WTH = ss.PTH*ss.ZTH
     # ss.wNT = ss.WNT = ss.PNT*ss.ZNT
     
-    ss.WTH = ss.PTH*ss.ZTH
-    ss.WNT = ss.PNT*ss.ZNT
+    # ss.WTH = ss.PTH*ss.ZTH
+    # ss.WNT = ss.PNT*ss.ZNT
 
 
 
     # c. household 
     ss.tau = par.tau_ss
-    ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH # Divid by PNT
-    ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT 
+
+    ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH + ss.d/par.sT# Divid by PNT
+    ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT + ss.d/par.sNT # Divid by PNT
+    
     ss.INC = ss.inc =  ss.inc_TH + ss.inc_NT
-
-
 
 
     par.run_u == False
@@ -147,7 +155,7 @@ def obj_ss(x, model, do_print=False):
     ss.B = ss.A
 
     # Real governmen consumption
-    ss.G = (ss.tau*(ss.WTH*ss.NTH+ss.WNT*ss.NNT)-ss.i*ss.B)/ ss.PNT #  *** Why ex-ante interest?
+    ss.G = (ss.tau*(ss.WTH*ss.NTH+ss.WNT*ss.NNT)-ss.i*ss.B)/ ss.PNT 
 
     #Monetary policy
     if par.float == True:
@@ -156,10 +164,8 @@ def obj_ss(x, model, do_print=False):
         ss.CB = ss.i
     
     # e. consumption
-    # Calculate consumption out of HH block
-    
-    ss.CT = ss.CT_hh # par.alphaT*ss.C_hh 
-    ss.CNT = ss.CNT_hh #(1-par.alphaT)*ss.C_hh
+    ss.CT = ss.CT_hh 
+    ss.CNT = ss.CNT_hh 
 
     # Energy and non-energy tradable consumption
     ss.CE = par.alphaE*(ss.PE/ss.PT)**(-par.etaE)*ss.CT_hh
@@ -169,30 +175,18 @@ def obj_ss(x, model, do_print=False):
     ss.CTF = par.alphaF*(ss.PF/ss.PTHF)**(-par.etaF)*ss.CTHF
     ss.CTH = (1-par.alphaF)*(ss.PTH/ss.PTHF)**(-par.etaF)*ss.CTHF
 
-    # # Consumption calculated in HH block 
-    # # Tradable and non-tradable consumption
-
-    # # tradable goods and energy consumeption
-    # ss.CTHF =ss.CTHF_hh 
-    # ss.CE = ss.CE_hh 
-
-    # ss.CTH =  ss.CTH_hh #(1-par.alphaF)*ss.CT
-    # ss.CTF = ss.CTF_hh #par.alphaF*ss.CT
-
-
     # size of foreign market
-    ss.CTH_s = ss.M_s = ss.YTH - ss.CTH # clearing_T
+    ss.CTH_s = ss.M_s = ss.YTH - ss.adjcost_TH  - ss.CTH # clearing_T
 
     # f. market clearing
-    ss.clearing_YTH = ss.YTH - ss.CTH - ss.CTH_s 
-    ss.clearing_YNT = ss.YNT - ss.CNT - ss.G
+    ss.clearing_YTH = ss.YTH - ss.CTH - ss.CTH_s  - ss.adjcost_TH 
+    ss.clearing_YNT = ss.YNT - ss.CNT - ss.G - ss.adjcost_NT 
 
     # zero net foreign assets
     ss.NFA = ss.A - ss.B
 
     # zero net foreign assets
-    ss.GDP = ss.PTH*ss.YTH + ss.PNT*ss.YNT
-    ss.YH = ss.YTH + ss.YNT
+    ss.GDP = ss.PTH*ss.YTH + ss.PNT*ss.YNT - ss.adjcost_TH - ss.adjcost_NT
     ss.NX = ss.GDP - ss.EX - ss.PNT*ss.G  # net export of goods. Should energy be included?
     ss.NFA = ss.A - ss.B
     ss.CA = ss.NX + (1+ss.i)*ss.NFA
@@ -200,15 +194,22 @@ def obj_ss(x, model, do_print=False):
 
     # g. disutility of labor for NKWPCs
 
+
+    par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
+    par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/par.sNT)**par.kappa)
+    ss.NKWCT_res = 0.0
+    ss.NKWCNT_res = 0.0
+    ss.NKPCTH_res = 0.0
+    ss.NKPCNT_res = 0.0
+    ss.UIP_res = 0.0 
+
+
+    # h. Additional variables
     ss.wTH = ss.WTH /1# w_tilde deflated with PNT
     ss.wNT = ss.WNT /1 # wage deflated with PIGL price index= 1 in initial steady state***.. Or is it
     ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
     ss.w = ss.W/ss.P
-
-    par.varphiTH = 1/par.muw*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
-    par.varphiNT = 1/par.muw*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
-    ss.NKWCT_res = 0.0
-    ss.NKWCNT_res = 0.0
+    ss.YH = ss.YTH + ss.YNT  - ss.adjcost_TH - ss.adjcost_NT #*** Should adjcost be included 
 
 
     return [ss.clearing_YNT, ss.NX] #ss.NFA

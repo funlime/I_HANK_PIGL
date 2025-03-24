@@ -43,7 +43,7 @@ def mon_pol(par,ini,ss,E,CB):
 @nb.njit
 def production(par,ini,ss,
                ZTH,ZNT,NTH,NNT,piWTH,piWNT,
-               YTH,YNT,WTH,WNT,PTH,PNT):
+               YTH,YNT,WTH,WNT,PTH,PNT, pi_TH, pi_NT):
     
     # a. production
     YTH[:] = ZTH*NTH
@@ -53,9 +53,12 @@ def production(par,ini,ss,
     price_from_inflation(WTH,piWTH,par.T,ss.WTH) # piWTH, piWNT are unknowns
     price_from_inflation(WNT,piWNT,par.T,ss.WNT)
 
-    # c. price = marginal cost
-    PTH[:] = WTH/ZTH
-    PNT[:] = WNT/ZNT
+    # c. price are determined by the Price Phillips curve
+    price_from_inflation(PTH,pi_TH,par.T,ss.PTH)
+    price_from_inflation(PNT,pi_NT,par.T,ss.PNT)
+
+    # PTH[:] = WTH/ZTH
+    # PNT[:] = WNT/ZNT
 
 @nb.njit
 def prices(par,ini,ss,
@@ -163,28 +166,6 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real):
 
 
 @nb.njit
-# def government(par,ini,ss,
-#                PNT,NTH,NNT,G,B,tau, WTH, WNT, i):
-
-#     for t in range(par.T): 
-    
-#     # a. nominal interest on last period bonds and last period nominal bonds
-#         lag_i = prev(i,t,ini.i)  
-#         B_lag = prev(B,t,ini.B)  
-
-#     # b. government budget
-        
-#         # o. nomnial tax base
-#         tax_base =  WTH[t]*NTH[t]+WNT[t]*NNT[t]  
- 
-#         # oo. tax rates following tax rule 
-#         # tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/PNT[t])/(ss.YTH+ss.YNT) # ***
-#         tau[t] = ss.tau + par.omega*(B_lag/PNT[t-1]-ss.B/PNT[t])/(ss.YTH+ss.YNT)
-
-#         # ooo. current nominal bonds from governmetn budget constraint
-#         B[t] = (1+lag_i)*B_lag + PNT[t]*G[t]-tau[t]*tax_base
-
-
 def government(par,ini,ss,
                PNT,NTH,NNT,G,B,tau, WTH, WNT, i):
 
@@ -206,6 +187,37 @@ def government(par,ini,ss,
         # ooo. current nominal bonds from governmetn budget constraint
         B[t] = (1+lag_i)*B_lag + PNT[t]*G[t]-tau[t]*tax_base
 
+@nb.njit
+def intermediary_goods(par,ini,ss,r_real,YTH, YNT,pi_TH, pi_NT, NKPCTH_res, NKPCNT_res, adjcost_TH, d_TH, adjcost_NT,d_NT, WNT, WTH, NNT, NTH, d):
+
+    # a. Phillips curve - Non-tradable
+    r_plus = lead(r_real,ss.r_real)
+    pi_NT_plus = lead(pi_NT,ss.pi_NT)
+    YNT_plus = lead(YNT,ss.YNT)
+
+    LHS = np.log(1+pi_TH)
+    RHS = par.kappa_p*(WNT - 1/par.mu_p) + 1/(1+r_plus)*YNT_plus/YNT*np.log(1+pi_NT_plus)
+    NKPCNT_res[:] = LHS-RHS
+
+    #  adjustment costs and dividends
+    adjcost_NT[:] = par.mu_p/(par.mu_p-1)/(2*par.kappa_p)*np.log(1+pi_NT)**2*YNT
+    d_NT[:] = YNT- WNT*NNT - adjcost_NT
+
+
+    # b. Phillips curve - tradable home
+    pi_TH_plus = lead(pi_TH,ss.pi_TH)
+    YTH_plus = lead(YTH,ss.YTH)
+
+    LHS = np.log(1+pi_TH)
+    RHS = par.kappa_p*(WTH - 1/par.mu_p) + 1/(1+r_plus)*YTH_plus/YTH*np.log(1+pi_TH_plus)
+    NKPCTH_res[:] = LHS-RHS
+
+    #  adjustment costs and dividends
+    adjcost_TH[:] = par.mu_p/(par.mu_p-1)/(2*par.kappa_p)*np.log(1+pi_TH)**2*YTH
+    d_TH[:] = YTH- WTH*NTH -adjcost_TH
+
+    d[:] = d_TH + d_NT
+
 
 @nb.njit
 def HH_pre(par,ini,ss,
@@ -221,7 +233,6 @@ def HH_pre(par,ini,ss,
     # b. labor supply Wrong but works kinda
     n_TH[:] = NTH/par.sT
     n_NT[:] = NNT/par.sNT
-
 
 
     # c. relative prices
@@ -328,10 +339,10 @@ def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s, r_real, Q):
 @nb.njit
 def market_clearing(par,ini,ss,
              YTH,CTH,CTH_s,YNT,CNT,G,
-             clearing_YTH,clearing_YNT):
+             clearing_YTH,clearing_YNT, adjcost_NT, adjcost_TH):
     
-    clearing_YTH[:] = YTH-CTH-CTH_s # Target
-    clearing_YNT[:] = YNT-CNT-G # Target
+    clearing_YTH[:] = YTH-CTH-CTH_s - adjcost_NT # Target
+    clearing_YNT[:] = YNT-CNT-G - adjcost_TH# Target
 
 @nb.njit
 def accounting(par,ini,ss,
@@ -370,7 +381,7 @@ def accounting(par,ini,ss,
     # For easier look at the results
     YH[:] = YNT+YTH
     W[:] = (par.sT*WTH + par.sNT*WNT) #***
-    w[:] = W/P # Tjeck what P is 
+    w[:] = W/P # Tjeck what P is  ***
     N[:] = NNT+NTH
-    INC[:] = (inc_NT + inc_TH)*PNT
+    INC[:] = (inc_NT + inc_TH)*P
     inc[:] = INC/P
