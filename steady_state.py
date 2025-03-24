@@ -71,8 +71,11 @@ def obj_ss(x, model, do_print=False):
     par = model.par
     ss = model.ss
 
-    par.nu = x[0]
-    par.sT = x[1]
+    
+    par.sT = x[0]
+
+    # par.nu = x[0]
+    # par.sT = x[1]
 
     # a. prices
 
@@ -211,7 +214,8 @@ def obj_ss(x, model, do_print=False):
     ss.NKWCNT_res = 0.0
 
 
-    return [ss.clearing_YNT, ss.NX] #ss.NFA
+    return [ss.clearing_YNT] #ss.NFA
+    # return [ss.clearing_YNT, ss.NX] #ss.NFA
 
 
 def find_ss(model, do_print=False): 
@@ -225,17 +229,18 @@ def find_ss(model, do_print=False):
     # a. Finding steady state  
     try:
         # Initial guess for solution
-        x0 = [0.7, 0.5]  
+        # x0 = [0.7, 0.5] 
+        x0 = [ 0.5]  
         
         # Optimizer
         res = optimize.root(obj_ss, x0, args=(model,), method='hybr')  # or another method like 'lm', 'broyden1', etc.
         # obj_ss[res.x]
-        print(f'Share of domestic workers in tradable sector = {res.x[1]:.2f}')
+        print(f'Share of domestic workers in tradable sector = {res.x[0]:.2f}')
     
     except Exception as e:
         print(f"Failed: {e}")
 
-    # b. Reruning model
+    # b. Reruning model an calcualting the utility using parameters from the steady state
     par.run_u = True
     obj_ss(res.x, model)
 
