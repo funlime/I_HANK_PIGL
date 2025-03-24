@@ -78,13 +78,13 @@ def obj_ss(x, model, do_print=False):
 
     # normalzied to 1
     # for varname in ['PF_s','E','PF','PTH','PT','PNT','P','PTH_s','Q']:
-    for varname in ['PF_s','E','PF','PTH','PT','P','PTH_s', 'p', 'PNT','P', 'PE', 'PTHF', 'PE_s', 'Q']:
+    for varname in ['PF_s','E','PF','PTH','PT','P','PTH_s', 'p', 'PNT','P', 'PE', 'PTHF', 'PE_s', 'Q', 'DomP']:
         ss.__dict__[varname] = 1.0
 
     
     
     # zero inflation
-    for varname in ['pi_F_s','pi_F','pi_TH','pi_T','pi_NT','pi','pi_TH_s','piWTH','piWNT']:
+    for varname in ['pi_F_s','pi_F','pi_TH','pi_T','pi_NT','pi','pi_TH_s','piWTH','piWNT', 'pi_DomP']:
         ss.__dict__[varname] = 0.0
 
     # real+nominal interest rates are equal to foreign interest rate

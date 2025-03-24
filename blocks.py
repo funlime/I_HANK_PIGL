@@ -60,40 +60,18 @@ def production(par,ini,ss,
 @nb.njit
 def prices(par,ini,ss,
            PF_s,E,PTH,PNT,
-           PF,PTH_s,PT,P, pi_F_s,pi_F,pi_NT,pi_TH,pi_T,pi,pi_TH_s, PE, PTHF, PE_s, Q):
+           PF,PTH_s,PT,P, pi_F_s,pi_F,pi_NT,pi_TH,pi_T,pi,pi_TH_s, PE, PTHF, PE_s, Q, DomP, pi_DomP):
     
     # a. convert curency
 
     PF[:] = PF_s*E
     PTH_s[:] = PTH/E
-
     PE[:] = PE_s*E
 
-
-
-    # for t in range(par.T): 
-    #     # if np.isnan(PTHF[t]):
-    #     #     print('PTHF is nan')
-    #     if np.isnan(PTH[t]):
-    #         print('PTH is nan')
-    #     if np.isnan(PF[t]):
-    #         print('PF is nan')
 
     # b. price indices
 
     PTHF[:] = price_index(PF,PTH,par.etaF,par.alphaF)
-
-    # for t in range(par.T): 
-    #     if np.isnan(PTHF[t]):
-    #         print('PTHF is nan')
-    #     if np.isnan(PTH[t]):
-    #         print('PTH is nan')
-    #     if np.isnan(PF[t]):
-    #         print('PF is nan')
-
-    # PT[:] = price_index(PTHF,PE,par.etaE,par.alphaE)
-
-    # Testing PTHF and PE is a number
 
 
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
@@ -108,7 +86,11 @@ def prices(par,ini,ss,
     # P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T)
 
     # c. real exchange rate
-    Q[:] = PF/P
+    Q[:] = PF/P  #*** Consider changing to PTH instead of P
+
+
+    # Calculate domestic price index using Paasche price index (sum of NT and H)
+    DomP[:] = (PNT * ss.CNT + PTH * ss.CTH) / (ss.PNT * ss.CNT + ss.PTH * ss.CTH)
 
 
 
@@ -120,13 +102,14 @@ def prices(par,ini,ss,
     pi_T[:] = inflation_from_price(PT,ini.PT)
     pi[:] = inflation_from_price(P,ini.P)
     pi_TH_s[:] = inflation_from_price(PTH_s,ini.PTH_s)
+    pi_DomP[:] = inflation_from_price(DomP,ini.DomP)
 
 
 
 @nb.njit
-def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real):
+def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
 
-    # TBD: Add choice of which inflation to target
+    # TBD: Add choice of which inflation to target ******* Lead or current inflation?????
     # Agregate inflaiton, how to weight tradable and non tradable inflation 
 
     # 1. setting interest rate
@@ -134,6 +117,11 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real):
 
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
+
+        if par.mon_policy == 'taylor_ppi':
+            pi_DomP_plus = lead(pi_DomP,ss.pi_DomP)
+
+            i[:] = ss.i + par.phi*pi_DomP + i_shock  # Taylor rule following domestic price index
 
  
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
@@ -163,28 +151,6 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real):
 
 
 @nb.njit
-# def government(par,ini,ss,
-#                PNT,NTH,NNT,G,B,tau, WTH, WNT, i):
-
-#     for t in range(par.T): 
-    
-#     # a. nominal interest on last period bonds and last period nominal bonds
-#         lag_i = prev(i,t,ini.i)  
-#         B_lag = prev(B,t,ini.B)  
-
-#     # b. government budget
-        
-#         # o. nomnial tax base
-#         tax_base =  WTH[t]*NTH[t]+WNT[t]*NNT[t]  
- 
-#         # oo. tax rates following tax rule 
-#         # tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/PNT[t])/(ss.YTH+ss.YNT) # ***
-#         tau[t] = ss.tau + par.omega*(B_lag/PNT[t-1]-ss.B/PNT[t])/(ss.YTH+ss.YNT)
-
-#         # ooo. current nominal bonds from governmetn budget constraint
-#         B[t] = (1+lag_i)*B_lag + PNT[t]*G[t]-tau[t]*tax_base
-
-
 def government(par,ini,ss,
                PNT,NTH,NNT,G,B,tau, WTH, WNT, i):
 
@@ -200,8 +166,7 @@ def government(par,ini,ss,
         tax_base =  WTH[t]*NTH[t]+WNT[t]*NNT[t]  
  
         # oo. tax rates following tax rule 
-        # tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/PNT[t])/(ss.YTH+ss.YNT) # ***
-        tau[t] = ss.tau + par.omega*(B_lag/PNT[t]-ss.B/ss.PNT)/(ss.YTH+ss.YNT)
+        tau[t] = ss.tau + par.omega*(B_lag/PNT[t-1]-ss.B/ss.PNT)/(ss.YTH+ss.YNT)
 
         # ooo. current nominal bonds from governmetn budget constraint
         B[t] = (1+lag_i)*B_lag + PNT[t]*G[t]-tau[t]*tax_base
@@ -221,7 +186,6 @@ def HH_pre(par,ini,ss,
     # b. labor supply Wrong but works kinda
     n_TH[:] = NTH/par.sT
     n_NT[:] = NNT/par.sNT
-
 
 
     # c. relative prices
