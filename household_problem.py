@@ -132,7 +132,6 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
         except:
             pass
 
-    
 
 
     for i_z in range(par.Nz):

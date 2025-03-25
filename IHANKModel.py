@@ -61,6 +61,10 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         par = self.par
 
+
+        # For tejkking 
+        # par.alt = False
+
         # New 
         par.epsilon = 0.18 # controls the degree of non-homotheticity 
         par.gamma = 0.29 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
@@ -89,7 +93,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.etaT = 0.5 #2.0 # elasticity of substitution between tradeable and non-tradeable goods
         
         par.alphaF = 1/3 # share of foreign goods in home tradeable consumption
-        par.etaF = 2.0 #*** # elasticity of substitution between home and foreign tradeable goods
+        par.etaF = 0.5 #*** # elasticity of substitution between home and foreign tradeable goods
           
         par.varphiTH = np.nan # disutility of labor in tradeable sector (determined in s)
         par.varphiNT = np.nan # disutility of labor in non-tradeable sector (determined in s)
@@ -110,7 +114,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         # e. foreign Economy
         par.rF_ss = 0.005 # exogenous foreign interest rate
-        par.eta_s =  2.0 # # Armington elasticity of foreign demand
+        par.eta_s =  0.5 # # Armington elasticity of foreign demand
         par.M_s_ss = np.nan # size of foreign market (determined in ss)
 
         # f. government

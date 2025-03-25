@@ -98,8 +98,6 @@ def prices(par,ini,ss,
     # d. inflation rates
     pi_F_s[:] = inflation_from_price(PF_s,ini.PF_s)
     pi_F[:] = inflation_from_price(PF,ini.PF)
-    # pi_NT[:] = inflation_from_price(PNT,ini.PNT)
-    # pi_TH[:] = inflation_from_price(PTH,ini.PTH)
     pi_T[:] = inflation_from_price(PT,ini.PT)
     pi[:] = inflation_from_price(P,ini.P)
     pi_TH_s[:] = inflation_from_price(PTH_s,ini.PTH_s)
@@ -122,7 +120,7 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
         if par.mon_policy == 'taylor_ppi':
             pi_DomP_plus = lead(pi_DomP,ss.pi_DomP)
 
-            i[:] = ss.i + par.phi*pi_DomP + i_shock  # Taylor rule following domestic price index
+            i[:] = ss.i + par.phi*pi_DomP_plus + i_shock  # Taylor rule following domestic price index
 
  
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
