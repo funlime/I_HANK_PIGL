@@ -92,8 +92,6 @@ def obj_ss(x, model, do_print=False):
 
     # real+nominal interest rates are equal to foreign interest rate
     ss.ra = ss.i = ss.iF_s = ss.r_real = ss.rF = par.rF_ss
-    ss.UIP_res = 0.0
-
 
 
     # domestic interes rate shock:
@@ -101,20 +99,17 @@ def obj_ss(x, model, do_print=False):
 
     # b. production
 
-    # normalize TFP and labor
+    # Productivity 
     ss.ZTH = 1.0
     ss.ZNT = 1.0
+    # Aggregate labor supply 
     ss.NTH = 1.0*par.sT
-
     ss.NNT = par.sNT = 1.0*(1-par.sT)
-
     ss.N = ss.NTH + ss.NNT  
-
-
+    # labor supply per houshold
     ss.n_TH = ss.NTH/par.sT
     ss.n_NT = ss.NNT/(1-par.sT)
     
-
     # production
     ss.YTH = ss.ZTH*ss.NTH
     ss.YNT = ss.ZNT*ss.NNT
@@ -122,21 +117,31 @@ def obj_ss(x, model, do_print=False):
     # real = nominal wages = value of mpl **** fixed 
     # ss.wTH = ss.WTH = ss.PTH*ss.ZTH
     # ss.wNT = ss.WNT = ss.PNT*ss.ZNT
+
+    # c. NKPC
+    # wages 
+    ss.WTH = ss.ZTH/par.mu_p
+    ss.WNT = ss.ZNT/par.mu_p
     
-    ss.WTH = ss.PTH*ss.ZTH
-    ss.WNT = ss.PNT*ss.ZNT
+    # Adjustment cost
+    ss.adj_TH = 0.0
+    ss.adj_NT = 0.0
 
-
-
+    # Dividend/profit
+    ss.div_TH = ss.YTH*ss.PTH - ss.WTH*ss.NTH - ss.adj_TH*ss.YTH
+    ss.div_NT = ss.YNT*ss.PNT - ss.WNT*ss.NNT - ss.adj_NT*ss.YNT
+     
+    
     # c. household 
+
+    # Income
     ss.tau = par.tau_ss
-    ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH # Divid by PNT
-    ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT 
+    ss.inc_TH = (1-ss.tau)*ss.WTH*ss.NTH +ss.div_TH # Total income to households in the tradable sector
+    ss.inc_NT = (1-ss.tau)*ss.WNT*ss.NNT +ss.div_NT# Total income to households in the non-tradable sector
+
     ss.INC = ss.inc =  ss.inc_TH + ss.inc_NT
 
-
-
-
+    # Solving and simulating the household block
     par.run_u == False
     model.solve_hh_ss(do_print=do_print)
     model.simulate_hh_ss(do_print=do_print)
@@ -159,8 +164,7 @@ def obj_ss(x, model, do_print=False):
         ss.CB = ss.i
     
     # e. consumption
-    # Calculate consumption out of HH block
-    
+    # Tradable and non-tradable consumption
     ss.CT = ss.CT_hh # par.alphaT*ss.C_hh 
     ss.CNT = ss.CNT_hh #(1-par.alphaT)*ss.C_hh
 
@@ -172,49 +176,52 @@ def obj_ss(x, model, do_print=False):
     ss.CTF = par.alphaF*(ss.PF/ss.PTHF)**(-par.etaF)*ss.CTHF
     ss.CTH = (1-par.alphaF)*(ss.PTH/ss.PTHF)**(-par.etaF)*ss.CTHF
 
-    # # Consumption calculated in HH block 
-    # # Tradable and non-tradable consumption
-
-    # # tradable goods and energy consumeption
-    # ss.CTHF =ss.CTHF_hh 
-    # ss.CE = ss.CE_hh 
-
-    # ss.CTH =  ss.CTH_hh #(1-par.alphaF)*ss.CT
-    # ss.CTF = ss.CTF_hh #par.alphaF*ss.CT
-
-
     # size of foreign market
     ss.CTH_s = ss.M_s = ss.YTH - ss.CTH # clearing_T
 
     # f. market clearing
-    ss.clearing_YTH = ss.YTH - ss.CTH - ss.CTH_s 
-    ss.clearing_YNT = ss.YNT - ss.CNT - ss.G
+    ss.clearing_YTH = ss.YTH - ss.CTH - ss.CTH_s  - ss.adj_TH*ss.YTH
+    ss.clearing_YNT = ss.YNT - ss.CNT - ss.G - ss.adj_NT*ss.YNT
 
     # zero net foreign assets
     ss.NFA = ss.A - ss.B
 
-    # zero net foreign assets
-    ss.GDP = ss.PTH*ss.YTH + ss.PNT*ss.YNT
-    ss.YH = ss.YTH + ss.YNT
-    ss.NX = ss.GDP - ss.EX - ss.PNT*ss.G  # net export of goods. Should energy be included?
-    ss.NFA = ss.A - ss.B
+    # Nominel GDP
+    ss.GDP = ss.PTH*ss.YTH *(1-ss.adj_TH) + ss.PNT*ss.YNT*(1-ss.adj_NT) 
+
+    # Net export 
+    ss.NX = ss.GDP - ss.EX - ss.PNT*ss.G  
+
+    # Current account
     ss.CA = ss.NX + (1+ss.i)*ss.NFA
+
+    # Walras 
     ss.Walras = ss.CA
 
     # g. disutility of labor for NKWPCs
-
-    ss.wTH = ss.WTH /1# w_tilde deflated with PNT
-    ss.wNT = ss.WNT /1 # wage deflated with PIGL price index= 1 in initial steady state***.. Or is it
-    ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
-    ss.w = ss.W/ss.P
-
     par.varphiTH = 1/par.mu_w*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
     par.varphiNT = 1/par.mu_w*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
+
+    # Wage philp curve residuals
     ss.NKWCT_res = 0.0
     ss.NKWCNT_res = 0.0
 
+    # Price Philips curve residuals
+    ss.NKPCT_res = 0.0
+    ss.NKPCNT_res = 0.0   
 
-    return [ss.clearing_YNT] #ss.NFA
+    # UIP  residuals
+    ss.UIP_res = 0.0
+
+
+    # Additional variables
+    ss.wTH = ss.WTH /1# 
+    ss.wNT = ss.WNT /1 # wage deflated with PIGL price index= 1 in initial steady state***.. Or is it
+    ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
+    ss.w = ss.W/ss.P
+    ss.YH = ss.YTH + ss.YNT
+
+    return [ss.clearing_YNT] 
     # return [ss.clearing_YNT, ss.NX] #ss.NFA
 
 

@@ -30,8 +30,8 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         # c. GE
         self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','G','i_shock', 'PE_s'] # exogenous inputs
-        self.unknowns = ['CB','NNT','NTH','piWTH','piWNT'] # endogenous inputs
-        self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res'] # targets
+        self.unknowns = ['CB','NNT','NTH','piWTH','piWNT', 'pi_NT', 'pi_TH'] # endogenous inputs
+        self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res', 'NKPCT_res', 'NKPCNT_res' ] # targets
         
         # d. all variables
         self.blocks = [
@@ -41,6 +41,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
             # 'blocks.inflation', 
             'blocks.central_bank',
             'blocks.government',
+            'blocks.intermediary_goods',
             'blocks.HH_pre',
             'hh',
             'blocks.HH_post',
