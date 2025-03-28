@@ -7,9 +7,18 @@ from GEModelTools import lag, lead
 ## Helpers ##
 ##############
 
+
 @nb.njit
-def price_index(P1,P2,eta,alpha):
-    return (alpha*P1**(1-eta)+(1-alpha)*P2**(1-eta))**(1/(1-eta))
+def price_index(P1, P2, eta, alpha): #Helper for price index CPI from section 4.1.3
+    if isclose(eta,1.0):
+        P = P1**alpha * P2**(1-alpha)
+    else:
+        P = (alpha*P1**(1-eta) + (1-alpha)*P2**(1-eta))**(1/(1-eta))
+    return P
+
+# @nb.njit
+# def price_index(P1,P2,eta,alpha):
+#     return (alpha*P1**(1-eta)+(1-alpha)*P2**(1-eta))**(1/(1-eta))
 
 @nb.njit
 def inflation_from_price(P,inival):
@@ -73,21 +82,27 @@ def prices(par,ini,ss,
     # b. price indices
 
     PTHF[:] = price_index(PF,PTH,par.etaF,par.alphaF)
-
-
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
 
+
     # c. PIGL Cost of living index for representative agents  (not used - look at first)
-    p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
-    
-    P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+    # If epsilon is close to 0 then use the CES price index
+    if isclose(par.epsilon,0) or isclose(par.gamma,0):
+        P[:] = price_index(PT,PNT,par.eta_T_RA, par.omega_T)
+
+    else:
+        p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
+        P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+
 
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
-    # P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T)
 
     # c. real exchange rate
-    Q[:] = PF/P  #*** Consider changing to PTH instead of P
+    if par.real_exchange_rate_PTH:
+        Q[:] = PF/PTH
+    else:
+        Q[:] = PF/P  #*** Consider changing to PTH instead of P
 
 
     # Calculate domestic price index using Paasche price index (sum of NT and H)

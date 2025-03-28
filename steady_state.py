@@ -251,13 +251,15 @@ def find_ss(model, do_print=False):
     # b. Reruning model an calcualting the utility using parameters from the steady state
     par.run_u = True
     obj_ss(res.x, model)
+
+    # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes
+    par.omega_T = par.nu *ss.E**(-par.epsilon)*ss.p**(par.gamma) # *** Doublet tjek formel
+    # Average elicticity of substitution between tradable and non-tradable goods 
+    par.eta_T_RA = 1 - par.gamma - (par.nu*(ss.PT/ss.PNT)**par.gamma) / ( (ss.EX/ss.PNT)**par.epsilon - par.nu*(ss.PT/ss.PNT)**par.gamma) * (par.gamma - par.epsilon)
+    
     if do_print: 
-        # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes
-        par.omega_T = par.nu *ss.E**(-par.epsilon)*ss.p**(par.gamma) # *** Doublet tjek formel
         print(f'Average share of consumption of tradables{par.omega_T = :.3f}')
 
-        # Average elicticity of substitution between tradable and non-tradable goods 
-        par.eta_T_RA = 1 - par.gamma - (par.nu*(ss.PT/ss.PNT)**par.gamma) / ( (ss.EX/ss.PNT)**par.epsilon - par.nu*(ss.PT/ss.PNT)**par.gamma) * (par.gamma - par.epsilon)
         print(f'Average elasticity of substitution between tradable and non-tradable goods{par.eta_T_RA = :.3f}')
 
 

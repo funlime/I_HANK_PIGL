@@ -2,6 +2,7 @@
 
 import numpy as np
 import numba as nb
+from GEModelTools import prev, next, lag, lead, isclose
 
 from consav.linear_interp import interp_1d_vec
 import math
@@ -126,9 +127,12 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
         u[:] = 0.0
     if par.run_u == True:
         try:
+            if isclose(par.epsilon,0) or isclose(par.gamma,0):
+                u[:] = 0.0
+            else:
+                u[0,:,:]=  (1/par.epsilon) * ( (e[0,:,:])**par.epsilon -1) - (par.nu/par.gamma)*( (p)**par.gamma -1)  -  par.varphiTH*(n_TH**(1+par.kappa))/ (1+par.kappa)
+                u[1,:,:]=   (1/par.epsilon) * ( (e[1,:,:])**par.epsilon -1) - (par.nu/par.gamma)*( (p)**par.gamma -1)  - par.varphiNT*(n_NT**(1+par.kappa))/ (1+par.kappa) 
 
-            u[0,:,:]=  (1/par.epsilon) * ( (e[0,:,:])**par.epsilon -1) - (par.nu/par.gamma)*( (p)**par.gamma -1)  -  par.varphiTH*(n_TH**(1+par.kappa))/ (1+par.kappa)
-            u[1,:,:]=   (1/par.epsilon) * ( (e[1,:,:])**par.epsilon -1) - (par.nu/par.gamma)*( (p)**par.gamma -1)  - par.varphiNT*(n_NT**(1+par.kappa))/ (1+par.kappa) 
         except:
             pass
 

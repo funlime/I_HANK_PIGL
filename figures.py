@@ -180,3 +180,14 @@ def plot_jac_p(model, title = None):
    plt.tight_layout()
 
    return fig
+
+
+def comp(model_baseline, model_alt_list, shock, paths_, lvl_path):
+    labels = [model_baseline.name] + [model_alt.name for model_alt in model_alt_list]
+    for model in model_alt_list:
+        
+        model.find_ss()
+        model.compute_jacs()
+        model.find_transition_path(shocks=shock, do_end_check=False)
+    
+    model_baseline.compare_IRFs(models=[model_baseline] + model_alt_list, labels=labels, varnames=paths_,  T_max=50, ncols=3, lvl_value=lvl_path, do_shocks=False, do_targets=False)
