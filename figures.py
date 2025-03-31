@@ -191,3 +191,12 @@ def comp(model_baseline, model_alt_list, shock, paths_, lvl_path):
         model.find_transition_path(shocks=shock, do_end_check=False)
     
     model_baseline.compare_IRFs(models=[model_baseline] + model_alt_list, labels=labels, varnames=paths_,  T_max=50, ncols=3, lvl_value=lvl_path, do_shocks=False, do_targets=False)
+
+
+def compare_IRFs_(models_list, ddd):
+    
+    labels = []
+    for i in models_list:
+        labels.append(i.name)
+    print(labels)
+    models_list[0].compare_IRFs(models=models_list, labels=labels, varnames=ddd.varnames,  T_max=ddd.T_max, ncols=ddd.ncols, lvl_value=ddd.lvl_value, do_shocks=ddd.do_shocks, do_targets=ddd.do_targets)
