@@ -299,8 +299,28 @@ def HH_post(par,ini,ss,
 
 @nb.njit
 def NKWCs(par,ini,ss,
-          piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
+          piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT, P):
 
+
+    # # a. Real wage in terms of PNT 
+    # wTH[:] = WTH/PNT
+    # wNT[:] = WNT/PNT
+
+    # # b. phillips curve tradeable
+    # piWTH_plus = lead(piWTH,ss.piWTH)
+
+    # LHS = piWTH  
+
+    # RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.mu_w*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
+    # NKWCT_res[:] = LHS-RHS # Target
+
+    # # c. phillips curve non-tradeable
+    # piWNT_plus = lead(piWNT,ss.piWNT)
+
+    # LHS = piWNT
+    # RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.mu_w*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
+    
+    # NKWCNT_res[:] = LHS-RHS # Target
 
     # a. Real wage in terms of PNT 
     wTH[:] = WTH/PNT
@@ -311,8 +331,20 @@ def NKWCs(par,ini,ss,
 
     LHS = piWTH  
 
-    RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.mu_w*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
+
+    mdu_labor = NTH/par.sT # Marignal disutility of labor
+    mu_e = (1-tau)*wTH*UC_TH_hh # Marginal utility of consumption
+    numerator = mdu_labor/mu_e
+    denominator = par.mu_w**(-1)*((1-tau)*wTH*(WTH/P)**par.zeta)
+
+
+    RHS = par.kappa_w*(numerator/denominator-1) + par.beta*piWTH_plus        
+
+
     NKWCT_res[:] = LHS-RHS # Target
+
+
+
 
     # c. phillips curve non-tradeable
     piWNT_plus = lead(piWNT,ss.piWNT)

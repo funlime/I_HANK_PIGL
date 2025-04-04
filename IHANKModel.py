@@ -82,6 +82,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.sNT = np.nan # share of Workers in the non-tradable sector - determined in ss
         par.pref = 'PIGL' # 'PIGL' or 'Cuub douglas'
         par.brute_force_C = False
+        par.zeta = 0.0
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors
