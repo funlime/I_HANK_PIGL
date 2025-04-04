@@ -199,4 +199,8 @@ def compare_IRFs_(models_list, ddd):
     for i in models_list:
         labels.append(i.name)
     print(labels)
-    models_list[0].compare_IRFs(models=models_list, labels=labels, varnames=ddd.varnames,  T_max=ddd.T_max, ncols=ddd.ncols, lvl_value=ddd.lvl_value, do_shocks=ddd.do_shocks, do_targets=ddd.do_targets)
+    if ddd.filename == None:
+        models_list[0].compare_IRFs(models=models_list, labels=labels, varnames=ddd.varnames,  T_max=ddd.T_max, ncols=ddd.ncols, lvl_value=ddd.lvl_value, do_shocks=ddd.do_shocks, do_targets=ddd.do_targets)
+    else:
+        models_list[0].compare_IRFs(models=models_list, labels=labels, varnames=ddd.varnames,  T_max=ddd.T_max, ncols=ddd.ncols, lvl_value=ddd.lvl_value, do_shocks=ddd.do_shocks, do_targets=ddd.do_targets, filename= ddd.filname)
+

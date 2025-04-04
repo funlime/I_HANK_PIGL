@@ -68,21 +68,34 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
     uc_TH[:] = 0.0
     uc_NT[:] = 0.0
 
+    if par.brute_force_C == False:
+            ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
+            cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
+
+
+    elif par.pref == 'PIGL_forces':
+
+        epsilon_ = 0.18
+        gamma_ = 0.29
+        ct[:] = e * (p**(-1))  *  par.nu*  e**(-epsilon_)  *p**(gamma_)
+        cnt[:] = e*(1-par.nu*e**(-epsilon_)*p**(gamma_))
+
+
+    elif par.pref == 'homothetic_force':
+
+        ct[:] = e * (p**(-1))  *  par.nu *p**(par.gamma)
+        cnt[:] = e*(1-par.nu*p**(par.gamma))
+
 
 
     # Non homothetic consumption of tradables and non tradables
 
     # Preferences 
-    if par.pref == 'PIGL':
+    elif par.pref == 'PIGL':
         ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
         cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
 
 
-    elif par.pref == 'PIGL_forces':
-        epsilon_ = 0.18
-        gamma_ = 0.29
-        ct[:] = e * (p**(-1))  *  par.nu*  e**(-epsilon_)  *p**(gamma_)
-        cnt[:] = e*(1-par.nu*e**(-epsilon_)*p**(gamma_))
 
 
     elif par.pref == 'CUBB_douglas': # Change to CD
@@ -90,9 +103,6 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
         cnt[:] = e*(1-par.nu)
     
 
-    elif par.pref == 'homothetic':
-        ct[:] = e * (p**(-1))  *  par.nu *p**(par.gamma)
-        cnt[:] = e*(1-par.nu*p**(par.gamma))
 
 
         # ct[:] = e*p**(-1)*par.nu*p**par.gamma

@@ -81,11 +81,17 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # par.phi_inflation = 1.0
         par.sNT = np.nan # share of Workers in the non-tradable sector - determined in ss
         par.pref = 'PIGL' # 'PIGL' or 'Cuub douglas'
+        par.brute_force_C = False
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors
         par.Nz = 7 # idiosyncratic productivity
         par.sT = np.nan # share of workers in tradeable sector
+        
+        
+        # Variables Monitary policy  
+        par.rho_i = 0.9 # persistance of monetary policy
+        par.phi_pi = 1.5 # inflation coefficient
 
         # b. preferences
         par.beta = 0.985 #0.975 # discount factor

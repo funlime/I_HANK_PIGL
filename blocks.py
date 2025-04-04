@@ -132,13 +132,26 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
-        if par.mon_policy == 'taylor_ppi':
+        if par.mon_policy == 'taylor_ppi_lead':
             pi_DomP_plus = lead(pi_DomP,ss.pi_DomP)
-
             i[:] = ss.i + par.phi*pi_DomP_plus + i_shock  # Taylor rule following domestic price index
 
+        if par.mon_policy == 'taylor_ppi':
+            i[:] = ss.i + par.phi*pi_DomP + i_shock  # Taylor rule following domestic price index
  
+
+
+        if par.mon_policy == 'taylor_persistant':
+
+                lag_i = lag(ini.i,i)
+                i[:] = (1+lag_i)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
+   
+
+
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
+            i[:] = ss.i + par.phi*pi + i_shock  # Taylor rule 
+
+        if par.mon_policy == 'taylor_lead':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
             i[:] = ss.i + par.phi*pi_plus + i_shock  # Taylor rule 
 
 
@@ -289,7 +302,7 @@ def NKWCs(par,ini,ss,
           piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
 
 
-    # a. Real wage 
+    # a. Real wage in terms of PNT 
     wTH[:] = WTH/PNT
     wNT[:] = WNT/PNT
 
