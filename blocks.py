@@ -7,9 +7,18 @@ from GEModelTools import lag, lead
 ## Helpers ##
 ##############
 
+
 @nb.njit
-def price_index(P1,P2,eta,alpha):
-    return (alpha*P1**(1-eta)+(1-alpha)*P2**(1-eta))**(1/(1-eta))
+def price_index(P1, P2, eta, alpha): #Helper for price index CPI from section 4.1.3
+    if isclose(eta,1.0):
+        P = P1**alpha * P2**(1-alpha)
+    else:
+        P = (alpha*P1**(1-eta) + (1-alpha)*P2**(1-eta))**(1/(1-eta))
+    return P
+
+# @nb.njit
+# def price_index(P1,P2,eta,alpha):
+#     return (alpha*P1**(1-eta)+(1-alpha)*P2**(1-eta))**(1/(1-eta))
 
 @nb.njit
 def inflation_from_price(P,inival):
@@ -43,7 +52,7 @@ def mon_pol(par,ini,ss,E,CB):
 @nb.njit
 def production(par,ini,ss,
                ZTH,ZNT,NTH,NNT,piWTH,piWNT,
-               YTH,YNT,WTH,WNT,PTH,PNT):
+               YTH,YNT,WTH,WNT,PTH,PNT, pi_NT, pi_TH):
     
     # a. production
     YTH[:] = ZTH*NTH
@@ -54,8 +63,9 @@ def production(par,ini,ss,
     price_from_inflation(WNT,piWNT,par.T,ss.WNT)
 
     # c. price = marginal cost
-    PTH[:] = WTH/ZTH
-    PNT[:] = WNT/ZNT
+    price_from_inflation(PTH, pi_TH, par.T, ss.PTH)
+    price_from_inflation(PNT, pi_NT, par.T, ss.PNT)
+
 
 @nb.njit
 def prices(par,ini,ss,
@@ -72,21 +82,27 @@ def prices(par,ini,ss,
     # b. price indices
 
     PTHF[:] = price_index(PF,PTH,par.etaF,par.alphaF)
-
-
     PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
 
+
     # c. PIGL Cost of living index for representative agents  (not used - look at first)
-    p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
-    
-    P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+    # If epsilon is close to 0 then use the CES price index
+    if isclose(par.epsilon,0) or isclose(par.gamma,0) or par.CES_price_index ==True:
+        P[:] = price_index(PT,PNT,par.eta_T_RA, par.omega_T)
+
+    else:
+        p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
+        P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+
 
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
-    # P[:] =   price_index(PT,PTHF,par.eta_T_RA, par.omega_T)
 
     # c. real exchange rate
-    Q[:] = PF/P  #*** Consider changing to PTH instead of P
+    if par.real_exchange_rate_PTH:
+        Q[:] = PF/PTH
+    else:
+        Q[:] = PF/P  #*** Consider changing to PTH instead of P
 
 
     # Calculate domestic price index using Paasche price index (sum of NT and H)
@@ -97,8 +113,6 @@ def prices(par,ini,ss,
     # d. inflation rates
     pi_F_s[:] = inflation_from_price(PF_s,ini.PF_s)
     pi_F[:] = inflation_from_price(PF,ini.PF)
-    pi_NT[:] = inflation_from_price(PNT,ini.PNT)
-    pi_TH[:] = inflation_from_price(PTH,ini.PTH)
     pi_T[:] = inflation_from_price(PT,ini.PT)
     pi[:] = inflation_from_price(P,ini.P)
     pi_TH_s[:] = inflation_from_price(PTH_s,ini.PTH_s)
@@ -118,13 +132,26 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
-        if par.mon_policy == 'taylor_ppi':
+        if par.mon_policy == 'taylor_ppi_lead':
             pi_DomP_plus = lead(pi_DomP,ss.pi_DomP)
+            i[:] = ss.i + par.phi*pi_DomP_plus + i_shock  # Taylor rule following domestic price index
 
+        if par.mon_policy == 'taylor_ppi':
             i[:] = ss.i + par.phi*pi_DomP + i_shock  # Taylor rule following domestic price index
-
  
+
+
+        if par.mon_policy == 'taylor_persistant':
+
+                lag_i = lag(ini.i,i)
+                i[:] = (1+lag_i)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
+   
+
+
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
+            i[:] = ss.i + par.phi*pi + i_shock  # Taylor rule 
+
+        if par.mon_policy == 'taylor_lead':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
             i[:] = ss.i + par.phi*pi_plus + i_shock  # Taylor rule 
 
 
@@ -173,15 +200,48 @@ def government(par,ini,ss,
 
 
 @nb.njit
+def intermediary_goods(par,ini,ss,r_real,YNT, YTH, WNT, WTH, NNT, NTH, PNT, PTH, ZNT, ZTH, pi_NT, pi_TH, NKPCT_res, NKPCNT_res,adj_TH, adj_NT,div_TH, div_NT):
+    
+    # a. Phillips curve
+    # i. Non tradable sector 
+    r_plus = lead(r_real,ss.r_real)
+    pi_NT_plus = lead(pi_NT,ss.pi_NT)
+    YNT_plus = lead(YNT,ss.YNT)
+
+    LHS = np.log(1+pi_NT)
+    RHS = par.kappa_p*(WNT/PNT*(1/ZNT)-1/par.mu_p) + 1/(1+r_plus)*YNT_plus/YNT*np.log(1+pi_NT_plus)
+    
+    NKPCNT_res[:] = LHS-RHS
+
+    # ii. Tradable sector
+    pi_TH_plus = lead(pi_TH,ss.pi_TH)
+    YTH_plus = lead(YTH,ss.YTH)
+
+    LHS = np.log(1+pi_TH)
+    RHS = par.kappa_p*(WTH/PTH*(1/ZTH)-1/par.mu_p) + 1/(1+r_plus)*YTH_plus/YTH*np.log(1+pi_TH_plus)
+
+    NKPCT_res[:] = LHS-RHS
+
+    # b. adjustment costs and dividends
+
+    adj_TH[:] = par.mu_p/(par.mu_p-1)/(2*par.kappa_p)*np.log(1+pi_TH)**2
+    adj_NT[:] = par.mu_p/(par.mu_p-1)/(2*par.kappa_p)*np.log(1+pi_NT)**2
+
+    div_TH[:] = YTH*PTH - WTH*NTH - adj_TH*YTH*PTH
+    div_NT[:] = YNT*PNT - WNT*NNT - adj_NT*YNT*PNT
+
+
+
+@nb.njit
 def HH_pre(par,ini,ss,
-           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, ra, p, PT, NNT, NTH,n_NT,n_TH , pi): # CHange inc_TH/inc_NT to w tilde
+           PNT, WTH, WNT, pi_NT, i, tau, inc_TH, inc_NT, div_NT, div_TH, ra, p, PT, NNT, NTH,n_NT,n_TH , pi): # CHange inc_TH/inc_NT to w tilde
     
 
     # Housholds inputs
 
     # a. after tax real wage in terms of non-tradable goods (Also calculated inside HH block for eisire decomposition)
-    inc_NT[:] = (NNT*WNT*(1-tau))/PNT
-    inc_TH[:] = (NTH*WTH*(1-tau))/PNT
+    inc_NT[:] = (NNT*WNT*(1-tau) + div_NT)/PNT
+    inc_TH[:] = (NTH*WTH*(1-tau)+ div_TH)/PNT
 
     # b. labor supply Wrong but works kinda
     n_TH[:] = NTH/par.sT
@@ -242,7 +302,7 @@ def NKWCs(par,ini,ss,
           piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
 
 
-    # a. Real wage 
+    # a. Real wage in terms of PNT 
     wTH[:] = WTH/PNT
     wNT[:] = WNT/PNT
 
@@ -273,33 +333,27 @@ def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s, r_real, Q):
     # b. nominal interest rate in foreign country
     iF_s[:] = (1+rF)*(1+pi_F_s_plus) - 1 # Nominal interest rate in foreign country, following the definition of pi_F_s
 
-    # c. UIP
-    # LHS = (1+i) # Domestic nominal interest rate
-    # RHS = (1+iF_s)*E_plus/E # 
-
-    # UIP_res[:] = LHS-RHS # Target
-
+    # c. UIP 
     Q_plus = lead(Q,ss.Q)
 
     LHS = 1+r_real
     RHS = (1+rF)*Q_plus/Q
     UIP_res[:] = LHS-RHS
 
-    # Real in terms of the general pris level 
-
 
 
 @nb.njit
 def market_clearing(par,ini,ss,
              YTH,CTH,CTH_s,YNT,CNT,G,
-             clearing_YTH,clearing_YNT):
+             clearing_YTH,clearing_YNT, adj_TH, adj_NT):
     
-    clearing_YTH[:] = YTH-CTH-CTH_s # Target
-    clearing_YNT[:] = YNT-CNT-G # Target
+    clearing_YTH[:] = YTH-CTH-CTH_s -  adj_TH * YTH# Target
+    clearing_YNT[:] = YNT-CNT-G  - adj_NT*YNT# Target
+
 
 @nb.njit
 def accounting(par,ini,ss,
-               PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra,
+               PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra, adj_TH, adj_NT,
                GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau):
     
 
@@ -312,8 +366,7 @@ def accounting(par,ini,ss,
     lag_i = lag(ini.i,i)
 
     # b. Nominal GDP
-    GDP[:] = PTH*YTH+PNT*YNT 
-
+    GDP[:] = PTH*YTH+PNT*YNT  - adj_TH*YTH*PTH - adj_NT*YNT*PNT
 
     # c. Net exports
     NX[:] = GDP-EX-PNT*G # Total production (nominal) - houhsolds private expenditure - Government expenditure

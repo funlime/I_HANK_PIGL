@@ -30,8 +30,8 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         # c. GE
         self.shocks = ['ZTH','ZNT','M_s','rF','PF_s','G','i_shock', 'PE_s'] # exogenous inputs
-        self.unknowns = ['CB','NNT','NTH','piWTH','piWNT'] # endogenous inputs
-        self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res'] # targets
+        self.unknowns = ['CB','NNT','NTH','piWTH','piWNT', 'pi_NT', 'pi_TH'] # endogenous inputs
+        self.targets = ['NKWCT_res','NKWCNT_res','clearing_YTH','clearing_YNT','UIP_res', 'NKPCT_res', 'NKPCNT_res' ] # targets
         
         # d. all variables
         self.blocks = [
@@ -41,6 +41,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
             # 'blocks.inflation', 
             'blocks.central_bank',
             'blocks.government',
+            'blocks.intermediary_goods',
             'blocks.HH_pre',
             'hh',
             'blocks.HH_post',
@@ -60,10 +61,16 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         par = self.par
 
+
+        # For tejkking 
+        # par.alt = False
+        par.sticky_prices = True
+        par.real_exchange_rate_PTH  = False
+
         # New 
         par.epsilon = 0.18 # controls the degree of non-homotheticity 
         par.gamma = 0.29 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
-        par.nu = 0.7 #*** A bit higher thank Borhnert who uses the median expenditure. Scalling parameter https://www.ecb.europa.eu/pub/pdf/scpwps/ecbwp1279.pdf
+        par.nu = 0.7 # Scalling parameter
         par.omega_T = np.nan # agregate expenditure share on tradables in steady state
         par.run_u = False
         par.mon_policy = 'taylor'
@@ -74,11 +81,18 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # par.phi_inflation = 1.0
         par.sNT = np.nan # share of Workers in the non-tradable sector - determined in ss
         par.pref = 'PIGL' # 'PIGL' or 'Cuub douglas'
+        par.brute_force_C = False
+        par.CES_price_index = False
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors
         par.Nz = 7 # idiosyncratic productivity
         par.sT = np.nan # share of workers in tradeable sector
+        
+        
+        # Variables Monitary policy  
+        par.rho_i = 0.9 # persistance of monetary policy
+        par.phi_pi = 1.5 # inflation coefficient
 
         # b. preferences
         par.beta = 0.985 #0.975 # discount factor
@@ -109,7 +123,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         # e. foreign Economy
         par.rF_ss = 0.005 # exogenous foreign interest rate
-        par.eta_s =  0.7 # # Armington elasticity of foreign demand
+        par.eta_s =  0.5 # # Armington elasticity of foreign demand
         par.M_s_ss = np.nan # size of foreign market (determined in ss)
 
         # f. government
