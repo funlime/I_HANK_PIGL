@@ -162,6 +162,9 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
         if par.mon_policy == 'taylor_OLD':
 
             i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
+        
+        else:
+            raise ValueError("monetary policy not recognized")
 
 
     else:

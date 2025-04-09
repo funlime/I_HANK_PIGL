@@ -26,7 +26,7 @@ abs_value = ['Walras']
 pctp = ['iF_s','piF_s','piF',
         'pi','piNT','piH','ppi','r','i','r_ann','pi_ann',
         'Dompi','di','NFA','r_NFA','piH_ann','i_ann',
-        'adjcost_T','adjcost_NT', 'tau']
+        'adjcost_T','adjcost_NT', 'tau', 'r_real', 'NX']
 
 
 pathlabels = {
@@ -35,13 +35,15 @@ pathlabels = {
     'P': 'CPI, $P$',
     'W': 'Wages, $W$',
     'w': 'Real wages $w$',
-    'r_real': 'Real initerest rate. $r$',
+    'r_real': 'Real initerest rate, $r$',
     'PE':'Price of energy $P_E$',
     'PT': '$P_T$', 
     'PNT': '$P_{NT}$',
     'p': '$P_T/P_{NT}$',
     'CNT_hh':'Cons. of non-tradeables ($C_{NT}$)',
     'CT_hh':'Cons. of tradeables ($C_{T}$)',
+    'CNT':'Cons. of non-tradeables ($C_{NT}$)',
+    'CT':'Cons. of tradeables ($C_{T}$)',
     'eps_beta':'Discount factor ($\\beta$)',
     'Exports':'Exports',
     'i_ann':'Nominal interest rate, annual ($i$)',
@@ -66,10 +68,11 @@ pathlabels = {
     'ToT':'Terms of Trade',
     'Y_s':'Foreign output ($Y^*$)',
     'Y':'GDP ($Y$)',
-    'YNT':'Non-Tradeable VA ($Y_{NT}$)',
-    'YT':'Tradeable VA ($Y_{T}$)',
+    'YNT':'Non-Tradeable production ($Y_{NT}$)',
+    'YTH':'Tradeable production ($Y_{TH}$)',
     # 'w' : 'Real wage rate ($w$)',
-    'E_hh': 'Expenditure, EX'
+    'E_hh': 'Expenditure, EX', 
+    'CTH_s': 'Foreign consumption ($C_{TH}$)',
 }
 
 
@@ -409,18 +412,18 @@ def _plot_IRFs(ax,model,pathname,scale,lstyle,color,lwidth,label,T_max):
         ax.set_ylabel('\%-points diff. to s.s.')
         ax.set_title(pathlabel)
     
-    elif pathname == 'NX':   
+    # elif pathname == 'NX':   
         
-        pathvalue_IM = getattr(model.path,'Imports')   
-        pathvalue_EX = getattr(model.path,'Exports')  
-        ssvalue_IM = getattr(model.ss,'Imports')
-        ssvalue_EX = getattr(model.ss,'Exports')
-        dIM = 100*(pathvalue_IM[:T_max]-ssvalue_IM)*scaleval / ssvalue_IM  
-        dEX = 100*(pathvalue_EX[:T_max]-ssvalue_EX)*scaleval / ssvalue_EX      
-        dNX = dEX-dIM  
-        ax.plot(np.arange(T_max),dNX,label=label,linestyle=lstyle,color=color,lw=lwidth)
-        ax.set_ylabel('\% diff. to s.s.')
-        ax.set_title(pathlabel)
+    #     pathvalue_IM = getattr(model.path,'Imports')   
+    #     pathvalue_EX = getattr(model.path,'Exports')  
+    #     ssvalue_IM = getattr(model.ss,'Imports')
+    #     ssvalue_EX = getattr(model.ss,'Exports')
+    #     dIM = 100*(pathvalue_IM[:T_max]-ssvalue_IM)*scaleval / ssvalue_IM  
+    #     dEX = 100*(pathvalue_EX[:T_max]-ssvalue_EX)*scaleval / ssvalue_EX      
+    #     dNX = dEX-dIM  
+    #     ax.plot(np.arange(T_max),dNX,label=label,linestyle=lstyle,color=color,lw=lwidth)
+    #     ax.set_ylabel('\% diff. to s.s.')
+    #     ax.set_title(pathlabel)
 
     else:
 
@@ -464,6 +467,7 @@ def show_IRFs(models,paths,labels=None,
     ncols = np.fmin(num,maxcol)
     if num%maxcol == 0: nrows -= 1 
 
+#***** FiGURE SIZE
     if figsize is None:
         #fig = plt.figure(figsize=(4.3*ncols,3.6*nrows))
         x_size, y_size = 13.5/maxcol*ncols, 10/maxcol*nrows
@@ -557,6 +561,7 @@ def show_price_IRFs(model):
     linewidth= 2.5 
 
     fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+    fig.suptitle(f'{model.name},  Price Response', fontsize=20)
 
     # Tradable and  non-tradable
     ax = fig.add_subplot(nrows,ncols,1)    
@@ -566,6 +571,7 @@ def show_price_IRFs(model):
     ax.plot((model.path.PNT-model.ss.PNT),ls=':',label='$P_{NT}$', linewidth=linewidth)
     ax.set_xlim([0,T_max])
     ax.legend()
+    ax.set_ylabel('\% diff. to s.s.')
     ax.set_title('Tradeable vs. non-tradeables')
     ax.set_xlabel('Quarters')
     ax.set_xticks(np.arange(0,T_max,4))
@@ -577,6 +583,7 @@ def show_price_IRFs(model):
     ax.plot((model.path.PE-model.ss.PE),ls=':',label='$P_{Energy}$', linewidth=linewidth)
     ax.set_xlim([0,T_max])
     ax.legend()
+    ax.set_ylabel('\% diff. to s.s.')
     ax.set_title('Energy vs. Goods')
     ax.set_xlabel('Quarters')
     ax.set_xticks(np.arange(0,T_max,4))
@@ -588,11 +595,249 @@ def show_price_IRFs(model):
     ax.plot((model.path.PTH-model.ss.PTH),ls=':',label='$P_{TH}$', linewidth=linewidth)
     ax.set_xlim([0,T_max])  
     ax.legend(loc='lower right')
+    ax.set_ylabel('\% diff. to s.s.')
     ax.set_title('Foreign to domestic price')
     ax.set_xlabel('Quarters')
     ax.set_xticks(np.arange(0,T_max,4))
 
 
     fig.tight_layout()
+
+    return fig
+
+
+def show_c_IRFs(model):
+
+    ncols = 3
+    nrows = 1
+    T_max = 17
+    linewidth= 2.5 
+
+    fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+    # Tradable and  non-tradable
+    fig.suptitle(f'{model.name}, Consumption Response', fontsize=20)
+    
+    ax = fig.add_subplot(nrows,ncols,1)    
+    # ax.plot((model.path.p-model.ss.p),label='$p$', linewidth=linewidth)
+    ax.plot(((model.path.CT-model.ss.CT)/model.ss.CT),label='$C_T$', linewidth=linewidth)
+    ax.plot(((model.path.CNT-model.ss.CNT)/model.ss.CNT),ls='--',label='$C_{NT}$', linewidth=linewidth)
+    # ax.plot((model.path.PNT-model.ss.PNT),ls=':',label='$P_{NT}$', linewidth=linewidth)
+    ax.set_xlim([0,T_max])
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.legend()
+    ax.set_title('Tradeable vs. non-tradeables')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0,T_max,4))
+
+    # Energy and non energy tradable 
+    ax = fig.add_subplot(nrows,ncols,2)    
+    ax.plot(((model.path.CE-model.ss.CE)/model.ss.CE),label='$C_E$', linewidth=linewidth)
+    ax.plot(((model.path.CTHF-model.ss.CTHF)/model.ss.CTHF),ls='--',label='$C_{goods}$', linewidth=linewidth)
+    # ax.plot((model.path.PE-model.ss.PE),ls=':',label='$P_{Energy}$', linewidth=linewidth)
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_xlim([0,T_max])
+    ax.legend()
+    ax.set_title('Energy vs. Goods')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0,T_max,4))
+
+    # Forign and domestic tradable 
+    ax = fig.add_subplot(nrows,ncols,3)    
+    # ax.plot((model.path.PTHF-model.ss.PTHF),label='$P_{goods}$', linewidth=linewidth)
+    ax.plot(((model.path.CTF-model.ss.CTF)/model.ss.CTF),ls='--',label='$C_F$', linewidth=linewidth)
+    ax.plot(((model.path.CTH-model.ss.CTH)/model.ss.CTH),ls=':',label='$C_{TH}$', linewidth=linewidth)
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_xlim([0,T_max])
+    ax.legend(loc='lower right')
+    ax.set_title('Forigne vs. Home tradable')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0,T_max,4))
+
+    fig.tight_layout()
+
+    return fig
+
+# Ploting all jacs
+def plot_jac(model):
+
+   fig = plt.figure(figsize=(15, 15))
+   # tittle
+   fig.suptitle(model.name + ' Jacobians')
+
+   ax = fig.add_subplot(3,3,3)
+   ax.set_title(r'Expenditure wrt $\tilde p$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('E_hh', 'p')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_{NT}$')
+   ax.set_xlabel('Quarters')
+
+   ax = fig.add_subplot(3,3,1)
+   ax.set_title(r'Consumption of tradables wrt $\tilde p$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CT_hh', 'p')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_T$')
+
+   ax = fig.add_subplot(3,3,2)
+   ax.set_title(r'Consumption of Non-tradables wrt $\tilde p$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CNT_hh', 'p')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_{NT}$')
+   ax.set_xlabel('Quarters')
+
+
+
+   ax = fig.add_subplot(3,3,4)
+   ax.set_title(r'Expenditure wrt $\tilde w_NT$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('E_hh', 'inc_TH')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_{NT}$')
+   ax.set_xlabel('Quarters')
+
+   ax = fig.add_subplot(3,3,5)
+   ax.set_title(r'Consumption of tradables wrt $w_NT$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CT_hh', 'inc_TH')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_T$')
+
+   ax = fig.add_subplot(3,3,6)
+   ax.set_title(r'Consumption of Non-tradables wrt $w_NT$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CNT_hh', 'inc_TH')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_{NT}$')
+   ax.set_xlabel('Quarters')
+
+
+
+
+   ax = fig.add_subplot(3,3,7)
+   ax.set_title(r'Expenditure wrt $\tilde r$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('E_hh', 'ra')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_{NT}$')
+   ax.set_xlabel('Quarters')
+
+   ax = fig.add_subplot(3,3,8)
+   ax.set_title(r'Consumption of tradables wrt $\tilde r$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CT_hh', 'ra')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_T$')
+
+   ax = fig.add_subplot(3,3,9)
+   ax.set_title(r'Consumption of Non-tradables wrt $\tilde r$')
+   for s in [0, 50, 150, 250]:
+      jac_hh_var = model.jac_hh[('CNT_hh', 'ra')]
+      ax.plot(np.arange(model.par.T), jac_hh_var[:, s],  label=f'shock at {s}')
+   ax.set_ylabel(r'$dC_{NT}$')
+   ax.set_xlabel('Quarters')
+
+
+
+   # legende outside box
+#    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+   plt.legend
+   plt.tight_layout()
+
+   return fig
+
+
+
+def show_pc_IRFs(model):
+    ncols = 3
+    nrows = 2
+    T_max = 17
+    linewidth = 2.5
+
+    fig = plt.figure(figsize=(4.3 * ncols / 1.05, 3.6 * nrows / 1.1), dpi=100)
+    # fig.suptitle(f'{model.name}: Price and Cons. Responses', fontsize=22)
+
+    # === Row 1: PRICE RESPONSES ===
+
+    # (1,1) Tradable vs. Non-tradable Prices
+    ax = fig.add_subplot(nrows, ncols, 1)
+    ax.plot((model.path.P - model.ss.P), label='$P$', linewidth=linewidth)
+    ax.plot((model.path.PT - model.ss.PT), ls='--', label='$P_T$', linewidth=linewidth)
+    ax.plot((model.path.PNT - model.ss.PNT), ls=':', label='$P_{NT}$', linewidth=linewidth)
+    ax.set_xlim([0, T_max])
+
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title('Tradabl and Non-tradable Prices')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0, T_max, 4))
+    ax.legend()
+
+    # (1,2) Energy vs. Goods Prices
+    ax = fig.add_subplot(nrows, ncols, 2)
+    ax.plot((model.path.PT - model.ss.PT), label='$P_T$', linewidth=linewidth)
+    ax.plot((model.path.PTHF - model.ss.PTHF), ls='--', label='$P_{Goods}$', linewidth=linewidth)
+    ax.plot((model.path.PE - model.ss.PE), ls=':', label='$P_{Energy}$', linewidth=linewidth)
+    ax.set_xlim([0, T_max])
+
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title('Energy vs. Goods Prices')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0, T_max, 4))
+    ax.legend()
+
+    # (1,3) Foreign vs. Domestic Tradables
+    ax = fig.add_subplot(nrows, ncols, 3)
+    ax.plot((model.path.PTHF - model.ss.PTHF), label='$P_{Goods}$', linewidth=linewidth)
+    ax.plot((model.path.PF - model.ss.PF), ls='--', label='$P_F$', linewidth=linewidth)
+    ax.plot((model.path.PTH - model.ss.PTH), ls=':', label='$P_{TH}$', linewidth=linewidth)
+    ax.set_xlim([0, T_max])
+
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title('Foreign vs. Domestic Tradables')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0, T_max, 4))
+    ax.legend(loc='lower right')
+
+    # === Row 2: CONS. RESPONSES ===
+
+    # (2,1) Tradable vs. Non-tradable Cons.
+    ax = fig.add_subplot(nrows, ncols, 4)
+    ax.plot(((model.path.CT - model.ss.CT) / model.ss.CT), label='$C_T$', linewidth=linewidth)
+    ax.plot(((model.path.CNT - model.ss.CNT) / model.ss.CNT), ls='--', label='$C_{NT}$', linewidth=linewidth)
+    ax.set_xlim([0, T_max])
+
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title('Tradable vs. Non-tradable Cons.')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0, T_max, 4))
+    ax.legend()
+
+    # (2,2) Energy vs. Goods Cons.
+    ax = fig.add_subplot(nrows, ncols, 5)
+    ax.plot(((model.path.CE - model.ss.CE) / model.ss.CE), label='$C_E$', linewidth=linewidth)
+    ax.plot(((model.path.CTHF - model.ss.CTHF) / model.ss.CTHF), ls='--', label='$C_{Goods}$', linewidth=linewidth)
+    ax.set_xlim([0, T_max])
+
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title('Energy vs. Goods Cons.')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0, T_max, 4))
+    ax.legend()
+
+    # (2,3) Foreign vs. Domestic Tradable Cons.
+    ax = fig.add_subplot(nrows, ncols, 6)
+    ax.plot(((model.path.CTF - model.ss.CTF) / model.ss.CTF), ls='--', label='$C_F$', linewidth=linewidth)
+    ax.plot(((model.path.CTH - model.ss.CTH) / model.ss.CTH), ls=':', label='$C_{TH}$', linewidth=linewidth)
+    ax.set_xlim([0, T_max])
+
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title('Foreign vs. Domestic Cons.')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0, T_max, 4))
+    ax.legend(loc='lower right')
+
+    fig.tight_layout()
+    fig.subplots_adjust(top=0.9)  # Make room for suptitle
 
     return fig

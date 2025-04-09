@@ -188,3 +188,11 @@ class IHANKModelClass(EconModelClass,GEModelClass):
     prepare_hh_ss = steady_state.prepare_hh_ss
     find_ss = steady_state.find_ss     
     find_ss_new = steady_state.find_ss_new
+
+
+    def calc_additional(self):
+        path = self.path
+        par = self.par
+        ss = self.ss
+
+        ss.cnt_epx = path.cnt*path.PNT
