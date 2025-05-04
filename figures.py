@@ -877,10 +877,10 @@ def show_p_hh(model, linewidth =1.0, type = 0):
         # For every period
         ax.plot((model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
     
-    ax.set_title(f'Period {t}', fontsize=16)
-    ax.set_xlabel(r' $a_{t-1}$', fontsize=16) # ****
+    ax.set_xlabel(r' $a_{t-1}$', fontsize=10) # ****
     ax.set_ylabel('\% diff. to s.s.')
     ax.legend(loc='upper right', fontsize=12, frameon=False)
+    ax.set_title(f'Individuals COL - Period {t}', fontsize=16)
     # ax.legend()
 
     # period 7 
@@ -891,7 +891,7 @@ def show_p_hh(model, linewidth =1.0, type = 0):
     for inc in range(0, 7, 2):
         # For every period
         ax.plot((model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
-    ax.set_title(f'Period {t}', fontsize=16)
+    ax.set_title(f'Individuals COL - Period {t}', fontsize=16)
     ax.set_xlabel(r' $a_{t-1}$', fontsize=16) # ****
     ax.set_ylabel('\% diff. to s.s.')
     # ax.set_ylim(-0.5, 0.5)

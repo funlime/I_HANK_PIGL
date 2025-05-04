@@ -195,14 +195,16 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par = self.par
         ss = self.ss
 
-        # a. Aggregate variables
+        # ------------ a. Aggregate variables ------------
 
         # i tradeable consumption share 
         path.T_share = path.CT / (path.CT + path.CNT) # share of tradeable consumption
         ss.T_share = ss.CT / (ss.CT + ss.CNT)
 
-        # b. Idiosyncratic variables
-        
+
+
+        #------------ b. Idiosyncratic variables ------------
+    
         # i. inflation
 
          # base periode expenditure share on nontradables
@@ -223,6 +225,29 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         p_tilde = (term1 + term2) ** (1 / par.gamma)
         path.p = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
 
+        # ii. MPC's 
+
+        denom = (1 + par.rF_ss) * (par.a_grid[1:] - par.a_grid[:-1])  # shape (499,)
+
+        # Step 2: List of consumption variables to compute MPC for
+        variables = ['e', 'ct', 'cnt']
+
+        # Step 3: Loop over variables and compute MPC with extrapolation
+        for var in variables:
+            cons = getattr(ss, var)  # e.g., model.ss.e, shape (2, 7, 500)
+
+            # Compute finite differences over assets
+            mpc = (cons[:, :, 1:] - cons[:, :, :-1]) / denom  # shape (2, 7, 499)
+
+            # Extrapolate last point using linear extrapolation
+            last_diff = mpc[:, :, -1] - mpc[:, :, -2]         # (2, 7)
+            mpc_last = mpc[:, :, -1] + last_diff              # (2, 7)
+
+            # Append extrapolated value
+            mpc_full = np.concatenate([mpc, mpc_last[:, :, np.newaxis]], axis=2)  # shape (2, 7, 500)
+
+            # Store result back to model.ss
+            setattr(ss, f'MPC_{var}', mpc_full) 
 
 
     
