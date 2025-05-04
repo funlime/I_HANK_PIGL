@@ -76,6 +76,13 @@ pathlabels = {
 }
 
 
+hh_labels = {
+    'e': 'Expenditure',
+    'ct': 'Consumption, Tradeables',
+    'cnt': 'Consumption Non-tradeables'
+    }
+
+
 paths_defaults = {
 
     'standard':
@@ -129,23 +136,25 @@ def plot_policy(model, varnames, ncol=3):
 
         I = par.a_grid < a_max
         ax = axes[idx]
-        ax.set_title(f'{varname}')
+        # ax.set_title(f'{varname}')
+        ax.set_title(f'{hh_labels[varname]}')
 
         # Plot policy functions for different states (i_z)
         for i_z in [0, par.Nz // 2, par.Nz - 1]:
-            ax.plot(par.a_grid[I], ss.__dict__[varname][i_fix, i_z, I], label=f'i_z = {i_z}')
+            ax.plot(par.a_grid[I], ss.__dict__[varname][i_fix, i_z, I], label=f'z = {i_z}')
 
-        ax.legend(frameon=True)
         ax.set_xlabel('savings, $a_{t-1}$')
         ax.set_ylabel(f'{varname}')
 
+    ax.legend(frameon=True )
     # Remove any unused subplots if n_vars is not equal to nrow * ncol
     for idx in range(n_vars, len(axes)):
         fig.delaxes(axes[idx])
 
     # Adjust layout for better spacing
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
+
+    return fig
 
 
 def plot_cum(models, varnames, ncols= 3, xlim= [], print_gini = False, title= None): 
@@ -173,7 +182,9 @@ def plot_cum(models, varnames, ncols= 3, xlim= [], print_gini = False, title= No
         
         ax = fig.add_subplot(nrows,ncols,i+1)
         title = varname
-        ax.set_title(title,fontsize=14)
+        ax.set_title(f'{varname}')
+        # ax.set_title(f'{hh_labels[title]}',fontsize=14)
+        # ax.set_title(f'{hh_labels[var]}')
 
     #var = 'a'
     # Flattening  data og weits
@@ -194,6 +205,8 @@ def plot_cum(models, varnames, ncols= 3, xlim= [], print_gini = False, title= No
 
                 ax.plot(sorted_var, cumulative, label=model.name ) #, color = model.c)
                 ax.set_xscale('symlog')
+                ax.set_xlabel(r'Begining of period assets, $a_{t-1}$')
+                ax.set_ylabel('CDF')
 
 
                 # # Normalized cumulative weights (needed for Lorenz curve)
@@ -217,13 +230,16 @@ def plot_cum(models, varnames, ncols= 3, xlim= [], print_gini = False, title= No
             ax.set_xlim(xlim)
 
         # ax.set_xlabel(f'{var}')
-        ax.legend(loc= 'lower right')
         #ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
         #ax.set_xscale('symlog')
 
         # ax.set_ylabel('Cumulative Probability')
         # ax.set_title('Cumulative Distribution Function (CDF) of ' + var)
-        ax.grid(True)
+    ax.grid(True)
+    ax.legend(loc= 'lower right')
+    plt.tight_layout()
+
+    return fig
 
 
 
@@ -440,7 +456,7 @@ def _plot_IRFs(ax,model,pathname,scale,lstyle,color,lwidth,label,T_max):
             ax.set_title(pathlabel)                           
 
 def show_IRFs(models,paths,labels=None,
-              T_max=20,scale=True,
+              T_max=20,scale=False,
               lwidth=1.3,lstyles=None,colors=None,
               maxcol=5,figsize=None,
               lfsize=12,legend_window=0,
@@ -762,9 +778,9 @@ def show_pc_IRFs(model):
 
     # (1,1) Tradable vs. Non-tradable Prices
     ax = fig.add_subplot(nrows, ncols, 1)
-    ax.plot((model.path.P - model.ss.P), label='$P$', linewidth=linewidth)
-    ax.plot((model.path.PT - model.ss.PT), ls='--', label='$P_T$', linewidth=linewidth)
-    ax.plot((model.path.PNT - model.ss.PNT), ls=':', label='$P_{NT}$', linewidth=linewidth)
+    ax.plot((model.path.P - model.ss.P)*100, label='$P$', linewidth=linewidth)
+    ax.plot((model.path.PT - model.ss.PT)*100, ls='--', label='$P_T$', linewidth=linewidth)
+    ax.plot((model.path.PNT - model.ss.PNT)*100, ls=':', label='$P_{NT}$', linewidth=linewidth)
     ax.set_xlim([0, T_max])
 
     ax.set_ylabel('\% diff. to s.s.')
@@ -775,9 +791,9 @@ def show_pc_IRFs(model):
 
     # (1,2) Energy vs. Goods Prices
     ax = fig.add_subplot(nrows, ncols, 2)
-    ax.plot((model.path.PT - model.ss.PT), label='$P_T$', linewidth=linewidth)
-    ax.plot((model.path.PTHF - model.ss.PTHF), ls='--', label='$P_{Goods}$', linewidth=linewidth)
-    ax.plot((model.path.PE - model.ss.PE), ls=':', label='$P_{Energy}$', linewidth=linewidth)
+    ax.plot((model.path.PT - model.ss.PT)*100, label='$P_T$', linewidth=linewidth)
+    ax.plot((model.path.PTHF - model.ss.PTHF)*100, ls='--', label='$P_{Goods}$', linewidth=linewidth)
+    ax.plot((model.path.PE - model.ss.PE)*100, ls=':', label='$P_{Energy}$', linewidth=linewidth)
     ax.set_xlim([0, T_max])
 
     ax.set_ylabel('\% diff. to s.s.')
@@ -788,9 +804,9 @@ def show_pc_IRFs(model):
 
     # (1,3) Foreign vs. Domestic Tradables
     ax = fig.add_subplot(nrows, ncols, 3)
-    ax.plot((model.path.PTHF - model.ss.PTHF), label='$P_{Goods}$', linewidth=linewidth)
-    ax.plot((model.path.PF - model.ss.PF), ls='--', label='$P_F$', linewidth=linewidth)
-    ax.plot((model.path.PTH - model.ss.PTH), ls=':', label='$P_{TH}$', linewidth=linewidth)
+    ax.plot((model.path.PTHF - model.ss.PTHF)*100, label='$P_{Goods}$', linewidth=linewidth)
+    ax.plot((model.path.PF - model.ss.PF)*100, ls='--', label='$P_F$', linewidth=linewidth)
+    ax.plot((model.path.PTH - model.ss.PTH)*100, ls=':', label='$P_{TH}$', linewidth=linewidth)
     ax.set_xlim([0, T_max])
 
     ax.set_ylabel('\% diff. to s.s.')
@@ -803,8 +819,8 @@ def show_pc_IRFs(model):
 
     # (2,1) Tradable vs. Non-tradable Cons.
     ax = fig.add_subplot(nrows, ncols, 4)
-    ax.plot(((model.path.CT - model.ss.CT) / model.ss.CT), label='$C_T$', linewidth=linewidth)
-    ax.plot(((model.path.CNT - model.ss.CNT) / model.ss.CNT), ls='--', label='$C_{NT}$', linewidth=linewidth)
+    ax.plot(((model.path.CT - model.ss.CT) / model.ss.CT)*100, label='$C_T$', linewidth=linewidth)
+    ax.plot(((model.path.CNT - model.ss.CNT) / model.ss.CNT)*100, ls='--', label='$C_{NT}$', linewidth=linewidth)
     ax.set_xlim([0, T_max])
 
     ax.set_ylabel('\% diff. to s.s.')
@@ -815,8 +831,8 @@ def show_pc_IRFs(model):
 
     # (2,2) Energy vs. Goods Cons.
     ax = fig.add_subplot(nrows, ncols, 5)
-    ax.plot(((model.path.CE - model.ss.CE) / model.ss.CE), label='$C_E$', linewidth=linewidth)
-    ax.plot(((model.path.CTHF - model.ss.CTHF) / model.ss.CTHF), ls='--', label='$C_{Goods}$', linewidth=linewidth)
+    ax.plot(((model.path.CE - model.ss.CE) / model.ss.CE)*100, label='$C_E$', linewidth=linewidth)
+    ax.plot(((model.path.CTHF - model.ss.CTHF) / model.ss.CTHF)*100, ls='--', label='$C_{Goods}$', linewidth=linewidth)
     ax.set_xlim([0, T_max])
 
     ax.set_ylabel('\% diff. to s.s.')
@@ -827,8 +843,8 @@ def show_pc_IRFs(model):
 
     # (2,3) Foreign vs. Domestic Tradable Cons.
     ax = fig.add_subplot(nrows, ncols, 6)
-    ax.plot(((model.path.CTF - model.ss.CTF) / model.ss.CTF), ls='--', label='$C_F$', linewidth=linewidth)
-    ax.plot(((model.path.CTH - model.ss.CTH) / model.ss.CTH), ls=':', label='$C_{TH}$', linewidth=linewidth)
+    ax.plot(((model.path.CTF - model.ss.CTF) / model.ss.CTF)*100, ls='--', label='$C_F$', linewidth=linewidth)
+    ax.plot(((model.path.CTH - model.ss.CTH) / model.ss.CTH)*100, ls=':', label='$C_{TH}$', linewidth=linewidth)
     ax.set_xlim([0, T_max])
 
     ax.set_ylabel('\% diff. to s.s.')
@@ -840,4 +856,45 @@ def show_pc_IRFs(model):
     fig.tight_layout()
     fig.subplots_adjust(top=0.9)  # Make room for suptitle
 
+    return fig
+
+
+def show_p_hh(model, linewidth =1.0, type = 0):
+
+    ncols = 2
+    nrows = 1
+    T_max = 17
+
+
+    fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+    # fig.suptitle(f'{model.name},  Individal Price indexes', fontsize=20)
+
+    # period 0
+    t = 0 
+    ax = fig.add_subplot(nrows,ncols,1)    
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.plot((model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
+    
+    ax.set_title(f'Period {t}', fontsize=16)
+    ax.set_xlabel(r' $a_{t-1}$', fontsize=16) # ****
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.legend(loc='upper right', fontsize=12, frameon=False)
+    # ax.legend()
+
+    # period 7 
+    t = 20
+    ax = fig.add_subplot(nrows,ncols,2)
+
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.plot((model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
+    ax.set_title(f'Period {t}', fontsize=16)
+    ax.set_xlabel(r' $a_{t-1}$', fontsize=16) # ****
+    ax.set_ylabel('\% diff. to s.s.')
+    # ax.set_ylim(-0.5, 0.5)
+
+    fig.tight_layout()
     return fig

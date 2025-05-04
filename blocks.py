@@ -147,8 +147,8 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
                 i[:] = (1+lag_i)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
    
 
-
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
+
             i[:] = ss.i + par.phi*pi + i_shock  # Taylor rule 
 
         if par.mon_policy == 'taylor_lead':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
@@ -163,8 +163,8 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
 
             i[:] = (1+ss.i) * ((1+pi_plus)/(1+ss.pi))**par.phi -1 + i_shock
         
-        else:
-            raise ValueError("monetary policy not recognized")
+        # else:
+        #     raise ValueError("monetary policy not recognized")
 
 
     else:

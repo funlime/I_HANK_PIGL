@@ -136,7 +136,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         # g. grids         
         par.a_min = 0.0 # maximum point in grid for a
-        par.a_max = 50.0 # maximum point in grid for a
+        par.a_max = 100.0 # maximum point in grid for a
         par.Na = 500 # number of grid points
 
         # h. shocks
@@ -195,4 +195,34 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par = self.par
         ss = self.ss
 
-        ss.cnt_epx = path.cnt*path.PNT
+        # a. Aggregate variables
+
+        # i tradeable consumption share 
+        path.T_share = path.CT / (path.CT + path.CNT) # share of tradeable consumption
+        ss.T_share = ss.CT / (ss.CT + ss.CNT)
+
+        # b. Idiosyncratic variables
+        
+        # i. inflation
+
+         # base periode expenditure share on nontradables
+        ss.ct_exp_share = ss.ct/(ss.cnt + ss.ct) # prices are normalized to 1
+
+
+
+        # Step 1: Reshape arrays for broadcasting
+        ct_exp_share = ss.ct_exp_share[np.newaxis, :, :, :]         # (1, 2, 7, 500)
+        PT = path.PT[:, 0].reshape(-1, 1, 1, 1)                      # (500, 1, 1, 1)
+        PNT = path.PNT[:, 0].reshape(-1, 1, 1, 1)                    # (500, 1, 1, 1)
+
+        # Step 2: Compute components
+        term1 = (1 - (par.epsilon * ct_exp_share) / par.gamma) * PNT ** par.gamma
+        term2 = ((par.epsilon * ct_exp_share) / par.gamma) * PT ** par.gamma
+
+        # Step 3: Compute p_tilde and p
+        p_tilde = (term1 + term2) ** (1 / par.gamma)
+        path.p = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
+
+
+
+    
