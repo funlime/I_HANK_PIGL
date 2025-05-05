@@ -875,7 +875,7 @@ def show_p_hh(model, linewidth =1.0, type = 0):
     # For ever second income
     for inc in range(0, 7, 2):
         # For every period
-        ax.plot((model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
+        ax.plot( model.par.a_grid[:], (model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
     
     ax.set_xlabel(r' $a_{t-1}$', fontsize=10) # ****
     ax.set_ylabel('\% diff. to s.s.')
@@ -890,11 +890,122 @@ def show_p_hh(model, linewidth =1.0, type = 0):
     # For ever second income
     for inc in range(0, 7, 2):
         # For every period
-        ax.plot((model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
+        ax.plot(model.par.a_grid[:], (model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', linewidth=linewidth)
     ax.set_title(f'Individuals COL - Period {t}', fontsize=16)
     ax.set_xlabel(r' $a_{t-1}$', fontsize=16) # ****
     ax.set_ylabel('\% diff. to s.s.')
     # ax.set_ylim(-0.5, 0.5)
+
+    fig.tight_layout()
+    return fig
+
+def show_p_MPC(model, linewidth =1.0, type = 0):
+
+    ncols = 3
+    nrows = 1
+    T_max = 17
+
+
+    fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+    # fig.suptitle(f'{model.name},  Individal Price indexes', fontsize=20)
+
+    # period 0
+    t = 0 
+    ax = fig.add_subplot(nrows,ncols,1)    
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.scatter( model.ss.MPC_e[type,inc,:], (model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', s=1)
+    
+    ax.set_xlabel(r' Marginal propensity of expenditure', fontsize=10) # ****
+    ax.set_ylabel('COL change')
+    ax.set_title(f'Expenditure', fontsize=16)
+    # ax.legend()
+
+    # period 7 
+
+    ax = fig.add_subplot(nrows,ncols,2)
+
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.scatter(model.ss.MPC_ct[type,inc,:], (model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', s=1)
+    ax.set_title(f'Consumption Tradable', fontsize=16)
+    ax.set_xlabel(r'MPC Tradables', fontsize=10) # ****
+    ax.set_ylabel('COL change')
+    # ax.set_ylim(-0.5, 0.5)
+
+
+
+    ax = fig.add_subplot(nrows,ncols,3)
+
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.scatter(model.ss.MPC_cnt[type,inc,:], (model.path.p[t,type,inc,:]-1)*100, label=f'z = {inc}', s=1)
+    ax.set_title(f'Consumption Non-tradable', fontsize=16)
+    ax.set_xlabel(r'MPC Non-Tradables', fontsize=10) # ****
+    ax.set_ylabel('COL change')
+    # ax.set_ylim(-0.5, 0.5)
+
+    ax.legend(loc='lower right', fontsize=12, frameon=False)
+
+
+    fig.tight_layout()
+    return fig
+
+
+
+def show_MPC_hh(model, linewidth =1.0, type = 0):
+
+    ncols = 3
+    nrows = 1
+    T_max = 17
+
+
+    fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+    # fig.suptitle(f'{model.name},  Individal Price indexes', fontsize=20)
+
+    # a. Expenditure
+    ax = fig.add_subplot(nrows,ncols,1)    
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.plot( model.par.a_grid[:], model.ss.MPC_e[type,inc,:], label=f'z = {inc}', linewidth=linewidth)
+    
+    ax.set_xlabel(r' $a_{t-1}$', fontsize=10) # ****
+    ax.set_ylabel('MPC')
+    # ax.legend(loc='upper right', fontsize=12, frameon=False)
+    ax.set_title(f'Marginal propensity of expenditure', fontsize=10)
+    # ax.legend()
+    ax.set_xlim(-0.4, 15)
+    # b. Consumption T 
+    ax = fig.add_subplot(nrows,ncols,2)
+
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.plot( model.par.a_grid[:], model.ss.MPC_ct[type,inc,:], label=f'z = {inc}', linewidth=linewidth)
+
+    ax.set_title(f'MPC Tradables', fontsize=10)
+    ax.set_xlabel(r' $a_{t-1}$', fontsize=10) # ****
+    ax.set_ylabel('MPC')
+    ax.set_xlim(-0.4, 15)
+
+    # b. Consumption NT
+    ax = fig.add_subplot(nrows,ncols,3)
+
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.plot( model.par.a_grid[:], model.ss.MPC_cnt[type,inc,:], label=f'z = {inc}', linewidth=linewidth)
+
+    ax.set_title(f'MPC Non-Tradables', fontsize=10)
+    ax.set_xlabel(r' $a_{t-1}$', fontsize=10) # ****
+    ax.set_ylabel('MPC')
+    ax.legend()
+    ax.set_xlim(-0.4, 15)
+
 
     fig.tight_layout()
     return fig
