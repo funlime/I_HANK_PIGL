@@ -1013,3 +1013,78 @@ def show_MPC_hh(model, linewidth =1.0, type = 0):
 
     fig.tight_layout()
     return fig
+
+
+
+
+def hh_type(model, shock, states= None, T_max=16):
+
+    if states is None:
+        states = {}
+        states['low'] = [0,0,0]
+        states['mid'] = [0,4,10]
+        states['high'] = [0,6,300]
+
+    #  Model with paths for inputs
+    model_no_shock = model.copy(name=f'Baseline')
+    model_no_shock.find_ss()
+    model_no_shock.compute_jacs()
+    model_no_shock.find_transition_path(shocks=[])
+
+    model_shock = model.copy(name=f'Baseline')
+    model_shock.find_ss()
+    model_shock.compute_jacs()
+    model_shock.find_transition_path(shocks=shock, do_end_check=False)
+        
+
+    CT_diff = {}
+    CNT_diff = {}
+
+    #------- for each state, simulate the path
+
+    for state in states.keys(): 
+
+        # empty states
+        Dbeg_choice = np.zeros(model.ini.Dbeg.shape)
+        # choose state
+        Dbeg_choice[tuple(states[state])] = 1.0
+
+        # simulate HH path for states before shock
+        model_no_shock.simulate_hh_path(Dbeg = Dbeg_choice)
+        
+        # simulate HH path for states after shock
+        model_shock.simulate_hh_path(Dbeg = Dbeg_choice)
+
+
+
+        # Save the difference in paths for CT and CNT
+        CT_diff[state] = (model_shock.path.CT_hh - model_no_shock.path.CT_hh) / model_no_shock.path.CT_hh * 100
+        CNT_diff[state] = (model_shock.path.CNT_hh - model_no_shock.path.CNT_hh) / model_no_shock.path.CNT_hh * 100
+        E_hh_diff = (model_shock.path.E_hh - model_no_shock.path.E_hh) / model_no_shock.path.E_hh * 100
+
+
+
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(131)
+    ax.set_title('Consumption T')
+
+    for state in states.keys(): 
+        ax.plot(CT_diff[state][:16], label=state)
+
+    ax.legend()
+
+
+    ax = fig.add_subplot(132)
+    ax.set_title('Consumption NT')
+    for state in states.keys(): 
+        ax.plot(CNT_diff[state][:T_max], label=state)
+    ax.legend()
+
+    ax = fig.add_subplot(133)
+    ax.set_title('E_hh')
+    for state in states.keys(): 
+        ax.plot(E_hh_diff[:T_max], label=state)
+    ax.legend()
+
+    fig.tight_layout()
+    return fig
