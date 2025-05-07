@@ -83,6 +83,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.pref = 'PIGL' # 'PIGL' or 'Cuub douglas'
         par.brute_force_C = False
         par.CES_price_index = False
+        par.real_wage_motive = 5.0
 
         # a. discrete states
         par.Nfix = 2 # number of sectors sectors
@@ -208,9 +209,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # i. inflation
 
          # base periode expenditure share on nontradables
-        ss.ct_exp_share = ss.ct/(ss.cnt + ss.ct) # prices are normalized to 1
-
-
+        ss.ct_exp_share = ss.ct/(ss.cnt + ss.ct) # prices are normalized to 1 so no need to multiply 
 
         # Step 1: Reshape arrays for broadcasting
         ct_exp_share = ss.ct_exp_share[np.newaxis, :, :, :]         # (1, 2, 7, 500)
@@ -224,6 +223,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # Step 3: Compute p_tilde and p
         p_tilde = (term1 + term2) ** (1 / par.gamma)
         path.p = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
+
 
         # ii. MPC's 
 

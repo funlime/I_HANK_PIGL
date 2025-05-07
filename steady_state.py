@@ -199,8 +199,11 @@ def obj_ss(x, model, do_print=False):
     ss.Walras = ss.CA
 
     # g. disutility of labor for NKWPCs
-    par.varphiTH = 1/par.mu_w*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
-    par.varphiNT = 1/par.mu_w*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
+
+    par.varphiTH = 1/par.mu_w*(1-ss.tau)*(ss.WTH/ss.PNT)* (ss.WTH/ss.P)**par.real_wage_motive  *  ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
+    par.varphiNT = 1/par.mu_w*(1-ss.tau)*(ss.WNT/ss.PNT)* (ss.WNT/ss.P)**par.real_wage_motive * ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
+    # par.varphiTH = 1/par.mu_w*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
+    # par.varphiNT = 1/par.mu_w*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
 
     # Wage philp curve residuals
     ss.NKWCT_res = 0.0

@@ -91,9 +91,8 @@ paths_defaults = {
          'YT','CT','labor_comp','ToT','Q'],
 
     'standard_vs_data':
-        ['Y','C','labor_comp','Exports','pi_ann',
-         'YNT','CNT','N','Imports','i_ann',
-         'YT','CT','w','Q','r_ann'],
+        ['YH', 'CT_hh', 'CNT_hh', 'W', 'P', 'w', 'r_real',
+           'Q', 'p', 'inc', 'INC'],
 
     'standard_vs_data_w_capital':
         ['Y','C','I','Exports','pi_ann',
@@ -455,7 +454,8 @@ def _plot_IRFs(ax,model,pathname,scale,lstyle,color,lwidth,label,T_max):
             ax.set_ylabel('\% diff. to s.s.')
             ax.set_title(pathlabel)                           
 
-def show_IRFs(models,paths,labels=None,
+def show_IRFs(models,paths,
+            #   labels=None,
               T_max=20,scale=False,
               lwidth=1.3,lstyles=None,colors=None,
               maxcol=5,figsize=None,
@@ -467,15 +467,19 @@ def show_IRFs(models,paths,labels=None,
     model = models[0]
     par = model.par
 
+
+
     # b. inputs
     if paths is None: paths = paths_defaults['standard_vs_data']
     if type(paths) is str: paths = paths_defaults[paths]
-    if labels is None: labels = [None]*len(models)
-    assert len(labels) >= len(models), f'{len(labels) = } must be same as {len(models) = }'
-    if lstyles is None: lstyles = ['-','--','-.',':',(0,(3, 1, 1, 1)),(0,(3, 5, 1, 5, 1, 5))]
-    
+    # if labels is None: labels = [None]*len(models)
+    # assert len(labels) >= len(models), f'{len(labels) = } must be same as {len(models) = }'
+    if lstyles is None: lstyles = ['-','--','-.',':',(0,(3, 1, 1, 1)),(0,(3, 5, 1, 5, 1, 5))]    
     if T_max is None: T_max = par.T   
     T_max_LP = 17
+    labels = []
+    for i in models:
+        labels.append(i.name)
 
     # c. figure
     num = len(paths)

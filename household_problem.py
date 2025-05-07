@@ -68,39 +68,44 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
     uc_TH[:] = 0.0
     uc_NT[:] = 0.0
 
-    if par.brute_force_C == False:
-            ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
-            cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
+    # elif par.pref == 'PIGL':
+    ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
+    cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
 
 
-    elif par.pref == 'PIGL_forces':
-
-        epsilon_ = 0.18
-        gamma_ = 0.29
-        ct[:] = e * (p**(-1))  *  par.nu*  e**(-epsilon_)  *p**(gamma_)
-        cnt[:] = e*(1-par.nu*e**(-epsilon_)*p**(gamma_))
+    # if par.brute_force_C == False:
+    #         ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
+    #         cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
 
 
-    elif par.pref == 'homothetic_force':
+    # elif par.pref == 'PIGL_forces':
 
-        ct[:] = e * (p**(-1))  *  par.nu *p**(par.gamma)
-        cnt[:] = e*(1-par.nu*p**(par.gamma))
+    #     epsilon_ = 0.18
+    #     gamma_ = 0.29
+    #     ct[:] = e * (p**(-1))  *  par.nu*  e**(-epsilon_)  *p**(gamma_)
+    #     cnt[:] = e*(1-par.nu*e**(-epsilon_)*p**(gamma_))
 
 
+    # elif par.pref == 'homothetic_force':
 
-    # Non homothetic consumption of tradables and non tradables
-
-    # Preferences 
-    elif par.pref == 'PIGL':
-        ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
-        cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
+    #     ct[:] = e * (p**(-1))  *  par.nu *p**(par.gamma)
+    #     cnt[:] = e*(1-par.nu*p**(par.gamma))
 
 
 
+    # # Non homothetic consumption of tradables and non tradables
 
-    elif par.pref == 'CUBB_douglas': # Change to CD
-        ct[:] = e*p**(-1)*par.nu
-        cnt[:] = e*(1-par.nu)
+    # # Preferences 
+    # elif par.pref == 'PIGL':
+    #     ct[:] = e * (p**(-1))  *  par.nu*  e**(-par.epsilon)  *p**(par.gamma)
+    #     cnt[:] = e*(1-par.nu*e**(-par.epsilon)*p**(par.gamma))
+
+
+
+
+    # elif par.pref == 'CUBB_douglas': # Change to CD
+    #     ct[:] = e*p**(-1)*par.nu
+    #     cnt[:] = e*(1-par.nu)
     
 
 
@@ -108,8 +113,8 @@ def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc
         # ct[:] = e*p**(-1)*par.nu*p**par.gamma
         # cnt[:] = e*(1-par.nu*p**par.gamma)
 
-    else:
-        raise NotImplementedError('Only PIGL and Cubb douglas preferences are implemented')
+    # else:
+    #     raise NotImplementedError('Only PIGL and Cubb douglas preferences are implemented')
     # Cubb douglas
     # if par.PIGL == False:
 

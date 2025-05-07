@@ -98,7 +98,8 @@ def prices(par,ini,ss,
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
 
-    # c. real exchange rate
+    # # c. real exchange rate
+
     if par.real_exchange_rate_PTH:
         Q[:] = PF/PTH
     else:
@@ -143,8 +144,8 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
 
         if par.mon_policy == 'taylor_persistant':
 
-                lag_i = lag(ini.i,i)
-                i[:] = (1+lag_i)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
+            lag_i = lag(ini.i,i)
+            i[:] = (1+lag_i)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
    
 
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
@@ -302,28 +303,70 @@ def HH_post(par,ini,ss,
 
 @nb.njit
 def NKWCs(par,ini,ss,
-          piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
+          piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT, P):
+
+    # a. phillips curve tradeable
+    piWTH_plus = lead(piWTH,ss.piWTH)
+
+    # RHS 
+    MDUL = par.varphiTH*(NTH/par.sT)**par.kappa 
+    MUC = UC_TH_hh
+
+    wage_PNTt = (1-tau)*(WTH/PNT)
+    Real_wage_motive = (WTH/P)**par.real_wage_motive
+
+    numerator = MDUL/MUC
+    denominator = (1/par.mu_w) * wage_PNTt * Real_wage_motive
+
+    RHS = par.kappa_w*(numerator/denominator - 1) + par.beta*piWTH_plus
+
+    # LHS
+    LHS = piWTH
+
+    NKWCT_res[:] = LHS-RHS # Target
 
 
-    # a. Real wage in terms of PNT 
+
+    #  b. phillips curve non-tradeable
+    piWNT_plus = lead(piWNT,ss.piWNT)
+
+    # RHS 
+    MDUL = par.varphiNT*(NNT/par.sNT)**par.kappa 
+    MUC = UC_NT_hh
+
+    wage_PNTt = (1-tau)*(WNT/PNT)
+    Real_wage_motive = (WNT/P)**par.real_wage_motive
+
+    numerator = MDUL/MUC
+    denominator = (1/par.mu_w) * wage_PNTt * Real_wage_motive
+
+    RHS = par.kappa_w*(numerator/denominator - 1) + par.beta*piWNT_plus
+
+    # LHS
+    LHS = piWNT
+
+    NKWCNT_res[:] = LHS-RHS # Target
+
+
+    # # a. Real wage in terms of PNT 
     wTH[:] = WTH/PNT
     wNT[:] = WNT/PNT
 
-    # b. phillips curve tradeable
-    piWTH_plus = lead(piWTH,ss.piWTH)
+    # # b. phillips curve tradeable
+    # piWTH_plus = lead(piWTH,ss.piWTH)
 
-    LHS = piWTH  
+    # LHS = piWTH  
 
-    RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.mu_w*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
-    NKWCT_res[:] = LHS-RHS # Target
+    # RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.mu_w*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
+    # NKWCT_res[:] = LHS-RHS # Target
 
-    # c. phillips curve non-tradeable
-    piWNT_plus = lead(piWNT,ss.piWNT)
+    # # c. phillips curve non-tradeable
+    # piWNT_plus = lead(piWNT,ss.piWNT)
 
-    LHS = piWNT
-    RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.mu_w*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
+    # LHS = piWNT
+    # RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.mu_w*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
     
-    NKWCNT_res[:] = LHS-RHS # Target
+    # NKWCNT_res[:] = LHS-RHS # Target
 
 @nb.njit
 def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s, r_real, Q):
