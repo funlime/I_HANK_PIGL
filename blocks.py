@@ -400,7 +400,7 @@ def market_clearing(par,ini,ss,
 @nb.njit
 def accounting(par,ini,ss,
                PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra, adj_TH, adj_NT,
-               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau):
+               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau, X, E_hh, omega_T_iso):
     
 
     # not in use     
@@ -437,3 +437,5 @@ def accounting(par,ini,ss,
     N[:] = NNT+NTH
     INC[:] = (inc_NT + inc_TH)*PNT
     inc[:] = INC/P
+    X[:] = (E_hh*PNT)/P
+   

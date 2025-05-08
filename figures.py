@@ -1039,6 +1039,9 @@ def hh_type(model, shock, states= None, T_max=16):
 
     CT_diff = {}
     CNT_diff = {}
+    E_hh_diff = {}
+    P_diff = {}
+    X_diff = {}
 
     #------- for each state, simulate the path
 
@@ -1060,12 +1063,14 @@ def hh_type(model, shock, states= None, T_max=16):
         # Save the difference in paths for CT and CNT
         CT_diff[state] = (model_shock.path.CT_hh - model_no_shock.path.CT_hh) / model_no_shock.path.CT_hh * 100
         CNT_diff[state] = (model_shock.path.CNT_hh - model_no_shock.path.CNT_hh) / model_no_shock.path.CNT_hh * 100
-        E_hh_diff = (model_shock.path.E_hh - model_no_shock.path.E_hh) / model_no_shock.path.E_hh * 100
+        E_hh_diff[state] = (model_shock.path.E_hh - model_no_shock.path.E_hh) / model_no_shock.path.E_hh * 100
+        P_diff[state] = (model_shock.path.P - model_no_shock.path.P) / model_no_shock.path.P * 100
+        X_diff[state] = (model_shock.path.X - model_no_shock.path.X) / model_no_shock.path.X * 100
 
 
 
     fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(131)
+    ax = fig.add_subplot(231)
     ax.set_title('Consumption T')
 
     for state in states.keys(): 
@@ -1082,8 +1087,25 @@ def hh_type(model, shock, states= None, T_max=16):
 
     ax = fig.add_subplot(133)
     ax.set_title('E_hh')
+    try:
+        for state in states.keys(): 
+            ax.plot(E_hh_diff[state][:T_max], label=state)
+    # for state in states.keys(): 
+    #     ax.plot(E_hh_diff[:T_max], label=state)
+        ax.legend()
+    except:
+        pass
+
+    ax = fig.add_subplot(234)
+    ax.set_title('P')
     for state in states.keys(): 
-        ax.plot(E_hh_diff[:T_max], label=state)
+        ax.plot(P_diff[state][:T_max], label=state)
+    ax.legend()
+
+    ax = fig.add_subplot(235)
+    ax.set_title('X')
+    for state in states.keys(): 
+        ax.plot(X_diff[state][:T_max], label=state)
     ax.legend()
 
     fig.tight_layout()
