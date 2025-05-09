@@ -25,7 +25,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         self.inputs_hh = ['ra',  'p', 'n_NT','n_TH',  'inc_NT', 'inc_TH',] # direct inputs
         self.inputs_hh_z = [] # transition matrix inputs
         # self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'cth', 'ctf', 'u', 'ce','cthf'] # outputs
-        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'u', 'v'] # outputs
+        self.outputs_hh = ['a','c','uc_TH','uc_NT', 'e', 'cnt', 'ct', 'u', 'v', 'q', 'x'] # outputs
         self.intertemps_hh = ['vbeg_a'] # intertemporal variables
 
         # c. GE
@@ -251,3 +251,31 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
 
     
+    def calc_additional_new(self):
+        path = self.path
+        par = self.par
+        ss = self.ss
+        ct_exp_share_ = ss.ct/(ss.cnt + ss.ct) # prices are normalized to 1 so no need to multiply 
+
+        # Step 1: Reshape arrays for broadcasting
+        ct_exp_share = ct_exp_share_[np.newaxis, :, :, :]         # (1, 2, 7, 500)
+        PT = path.PT[:, 0].reshape(-1, 1, 1, 1)                      # (500, 1, 1, 1)
+        PNT = path.PNT[:, 0].reshape(-1, 1, 1, 1)                    # (500, 1, 1, 1)
+
+        # Step 2: Compute components
+        term1 = (1 - (par.epsilon * ct_exp_share) / par.gamma) * PNT ** par.gamma
+        term2 = ((par.epsilon * ct_exp_share) / par.gamma) * PT ** par.gamma
+
+        # Step 3: Compute p_tilde and p
+        p_tilde = (term1 + term2) ** (1 / par.gamma)
+        path.q = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
+        path.x = (path.e*PNT)/path.q
+
+        # c. aggregate
+        for outputname in ['x', 'q']:
+
+            Outputname_hh = f'{outputname.upper()}_hh'
+            pathvalue = path.__dict__[Outputname_hh]
+
+            pol = path.__dict__[outputname]
+            pathvalue[:,0] = np.sum(pol*path.D,axis=tuple(range(1,pol.ndim)))

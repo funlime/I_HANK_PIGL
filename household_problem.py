@@ -15,7 +15,7 @@ def price_index(P1,P2,eta,alpha):
 
 @nb.njit       
 # def solve_hh_backwards(par,z_trans,beta,ra,vbeg_a_plus,vbeg_a,a,c, uc_TH,uc_NT, e, cnt, ct, cth, ctf,  PT, PNT, PF, PTH, u, n_NT,n_TH, WNT,WTH, tau, ce, cthf , PE, PTHF):
-def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc_TH,uc_NT, e, cnt, ct,   u, n_NT,n_TH,  p , v):
+def solve_hh_backwards(par,z_trans,ra,vbeg_a_plus,vbeg_a,a,c, inc_NT, inc_TH, uc_TH,uc_NT, e, cnt, ct,   u, n_NT,n_TH,  p , v, q, x):
 
     """ solve backwards with vbeg_a from previous iteration (here vbeg_a_plus) """
 

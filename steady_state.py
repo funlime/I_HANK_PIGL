@@ -259,8 +259,7 @@ def find_ss(model, do_print=False):
     # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes
     # par.omega_T = par.nu *ss.E**(-par.epsilon)*ss.p**(par.gamma) # *** Doublet tjek formel
     par.omega_T = ss.CT/ss.EX # *** Doublet tjek formel
-    ss.omega_T_iso = ss.ct/ss.e
-    ss.p_ = np.ones((par.Nfix,par.Nz,par.Na))*ss.p
+
 
     # Average elicticity of substitution between tradable and non-tradable goods 
     if par.brute_force_C == False:

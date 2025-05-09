@@ -1017,7 +1017,7 @@ def show_MPC_hh(model, linewidth =1.0, type = 0):
 
 
 
-def hh_type(model, shock, states= None, T_max=16):
+def IRF_cohort(model, shock, states= None, T_max=16):
 
     if states is None:
         states = {}
@@ -1037,13 +1037,15 @@ def hh_type(model, shock, states= None, T_max=16):
     model_shock.find_transition_path(shocks=shock, do_end_check=False)
         
 
+
     CT_diff = {}
     CNT_diff = {}
     E_hh_diff = {}
-    P_diff = {}
+    Q_diff = {}
     X_diff = {}
 
-    #------- for each state, simulate the path
+
+#------- for each state, simulate the path
 
     for state in states.keys(): 
 
@@ -1052,61 +1054,63 @@ def hh_type(model, shock, states= None, T_max=16):
         # choose state
         Dbeg_choice[tuple(states[state])] = 1.0
 
+
         # simulate HH path for states before shock
         model_no_shock.simulate_hh_path(Dbeg = Dbeg_choice)
-        
+        model_no_shock.calc_additional_new()
+
+
         # simulate HH path for states after shock
         model_shock.simulate_hh_path(Dbeg = Dbeg_choice)
-
+        model_shock.calc_additional_new()
 
 
         # Save the difference in paths for CT and CNT
         CT_diff[state] = (model_shock.path.CT_hh - model_no_shock.path.CT_hh) / model_no_shock.path.CT_hh * 100
         CNT_diff[state] = (model_shock.path.CNT_hh - model_no_shock.path.CNT_hh) / model_no_shock.path.CNT_hh * 100
         E_hh_diff[state] = (model_shock.path.E_hh - model_no_shock.path.E_hh) / model_no_shock.path.E_hh * 100
-        P_diff[state] = (model_shock.path.P - model_no_shock.path.P) / model_no_shock.path.P * 100
-        X_diff[state] = (model_shock.path.X - model_no_shock.path.X) / model_no_shock.path.X * 100
+        Q_diff[state] = (model_shock.path.Q_hh - model_no_shock.path.Q_hh) / model_no_shock.path.Q_hh * 100
+        X_diff[state] = (model_shock.path.X_hh - model_no_shock.path.X_hh) / model_no_shock.path.X_hh * 100
 
 
 
     fig = plt.figure(figsize=(10, 6))
-    ax = fig.add_subplot(231)
+    ncols = 2
+    nrows = 2
+
+
+
+    ax = fig.add_subplot(ncols, nrows, 1)
     ax.set_title('Consumption T')
-
     for state in states.keys(): 
-        ax.plot(CT_diff[state][:16], label=state)
-
+        ax.plot(CT_diff[state][:T_max], label=state)
     ax.legend()
+    ax.set_xlabel('Quarters')
+    ax.set_ylabel('\% diff. to s.s.')
 
-
-    ax = fig.add_subplot(132)
+    ax = fig.add_subplot(ncols, nrows, 2)
     ax.set_title('Consumption NT')
     for state in states.keys(): 
         ax.plot(CNT_diff[state][:T_max], label=state)
     ax.legend()
+    ax.set_xlabel('Quarters')
+    ax.set_ylabel('\% diff. to s.s.')
 
-    ax = fig.add_subplot(133)
-    ax.set_title('E_hh')
-    try:
-        for state in states.keys(): 
-            ax.plot(E_hh_diff[state][:T_max], label=state)
-    # for state in states.keys(): 
-    #     ax.plot(E_hh_diff[:T_max], label=state)
-        ax.legend()
-    except:
-        pass
-
-    ax = fig.add_subplot(234)
+    ax = fig.add_subplot(ncols, nrows, 3)
     ax.set_title('P')
     for state in states.keys(): 
-        ax.plot(P_diff[state][:T_max], label=state)
+        ax.plot(Q_diff[state][:T_max], label=state)
     ax.legend()
+    ax.set_xlabel('Quarters')
+    ax.set_ylabel('\% diff. to s.s.')
 
-    ax = fig.add_subplot(235)
+    ax = fig.add_subplot(ncols, nrows, 4)
     ax.set_title('X')
     for state in states.keys(): 
         ax.plot(X_diff[state][:T_max], label=state)
     ax.legend()
-
+    ax.set_xlabel('Quarters')
+    ax.set_ylabel('\% diff. to s.s.')
     fig.tight_layout()
+    
     return fig
