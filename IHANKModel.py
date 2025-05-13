@@ -209,10 +209,10 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         # i. inflation
 
          # base periode expenditure share on nontradables
-        ss.ct_exp_share = ss.ct/(ss.cnt + ss.ct) # prices are normalized to 1 so no need to multiply 
+        ct_exp_share = ss.ct/(ss.cnt + ss.ct) # prices are normalized to 1 so no need to multiply 
 
         # Step 1: Reshape arrays for broadcasting
-        ct_exp_share = ss.ct_exp_share[np.newaxis, :, :, :]         # (1, 2, 7, 500)
+        ct_exp_share = ct_exp_share[np.newaxis, :, :, :]         # (1, 2, 7, 500)
         PT = path.PT[:, 0].reshape(-1, 1, 1, 1)                      # (500, 1, 1, 1)
         PNT = path.PNT[:, 0].reshape(-1, 1, 1, 1)                    # (500, 1, 1, 1)
 
@@ -222,7 +222,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
         # Step 3: Compute p_tilde and p
         p_tilde = (term1 + term2) ** (1 / par.gamma)
-        path.p = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
+        path.q = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
 
 
         # ii. MPC's 
@@ -230,6 +230,41 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         denom = (1 + par.rF_ss) * (par.a_grid[1:] - par.a_grid[:-1])  # shape (499,)
 
         # Step 2: List of consumption variables to compute MPC for
+        variables = ['e', 'ct', 'cnt']
+
+        # Step 3: Loop over variables and compute MPC with extrapolation
+        for var in variables:
+            cons = getattr(ss, var)  # e.g., model.ss.e, shape (2, 7, 500)
+
+            # Compute finite differences over assets
+            mpc = (cons[:, :, 1:] - cons[:, :, :-1]) / denom  # shape (2, 7, 499)
+
+            # Extrapolate last point using linear extrapolation
+            last_diff = mpc[:, :, -1] - mpc[:, :, -2]         # (2, 7)
+            mpc_last = mpc[:, :, -1] + last_diff              # (2, 7)
+
+            # Append extrapolated value
+            mpc_full = np.concatenate([mpc, mpc_last[:, :, np.newaxis]], axis=2)  # shape (2, 7, 500)
+
+            # Store result back to model.ss
+            setattr(ss, f'MPC_{var}', mpc_full) 
+        
+        
+        # iii. additional variables
+        
+        ss.omegaiT = ss.ct/(ss.ct+ss.cnt)
+        ss.etaiT =  1- par.gamma- ss.omegaiT/(1-ss.omegaiT)   *(par.gamma-par.epsilon)# 1- par.gamma - ss.omegaiT/(1-ss.omegaiT)(par.gamma-par.gamma)
+
+
+
+    def calc_MPCs(self):
+        ss = self.ss
+        par = self.par
+        path = self.path
+        denom = (1 + par.rF_ss) * (par.a_grid[1:] - par.a_grid[:-1])  # shape (499,)
+
+
+            # Step 2: List of consumption variables to compute MPC for
         variables = ['e', 'ct', 'cnt']
 
         # Step 3: Loop over variables and compute MPC with extrapolation
@@ -262,13 +297,22 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         PT = path.PT[:, 0].reshape(-1, 1, 1, 1)                      # (500, 1, 1, 1)
         PNT = path.PNT[:, 0].reshape(-1, 1, 1, 1)                    # (500, 1, 1, 1)
 
-        # Step 2: Compute components
-        term1 = (1 - (par.epsilon * ct_exp_share) / par.gamma) * PNT ** par.gamma
-        term2 = ((par.epsilon * ct_exp_share) / par.gamma) * PT ** par.gamma
 
         # Step 3: Compute p_tilde and p
-        p_tilde = (term1 + term2) ** (1 / par.gamma)
-        path.q = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
+        if par.epsilon == 0.0 and par.gamma == 0.0:
+            path.q = PT **  ct_exp_share * PNT ** (1-ct_exp_share )
+
+        elif par.epsilon == 0.0 :
+            path.q =  PNT * np.exp(ct_exp_share * ((PT / PNT) ** par.gamma) * (1 / par.gamma) * (((PT / PNT) ** par.gamma) - 1))
+
+        else:
+            path.q =PNT *(1+ct_exp_share*(par.epsilon/par.gamma)*((PT/PNT)**par.gamma-1))**(1/par.epsilon)
+            # Step 2: Compute components
+            # term1 = (1 - (par.epsilon * ct_exp_share) / par.gamma) * PNT ** par.gamma
+            # term2 = ((par.epsilon * ct_exp_share) / par.gamma) * PT ** par.gamma
+            # p_tilde = (term1 + term2) ** (1 / par.gamma)
+            # path.q = p_tilde ** (par.gamma / par.epsilon) * PNT ** (1 - par.gamma / par.epsilon)
+
         path.x = (path.e*PNT)/path.q
 
         # c. aggregate
@@ -279,3 +323,65 @@ class IHANKModelClass(EconModelClass,GEModelClass):
 
             pol = path.__dict__[outputname]
             pathvalue[:,0] = np.sum(pol*path.D,axis=tuple(range(1,pol.ndim)))
+
+
+        # Correlation between e and ct_exp_share
+        A = ss.e.ravel()
+        B = ct_exp_share.ravel()
+        w = ss.D.ravel()
+        print(np.max(A))
+
+        # Normalize weights to sum to 1
+        w /= np.sum(w)
+
+        # Compute weighted means
+        mean_A = np.sum(w * A)
+        mean_B = np.sum(w * B)
+
+        # Compute weighted covariance
+        cov_AB = np.sum(w * (A - mean_A) * (B - mean_B))
+
+
+        std_A = np.sqrt(np.sum(w * (A - mean_A) ** 2))
+        std_B = np.sqrt(np.sum(w * (B - mean_B) ** 2))
+
+        eps = 1e-10  # numerical tolerance
+
+        if std_A < eps or std_B < eps:
+            corr_AB = 0.0
+        else:
+            corr_AB = cov_AB / (std_A * std_B)
+
+        self.cov_e_omegaT = cov_AB
+        self.cor_e_omegaT = corr_AB
+
+
+        # ii. MPC's 
+
+        denom = (1 + par.rF_ss) * (par.a_grid[1:] - par.a_grid[:-1])  # shape (499,)
+
+        # Step 2: List of consumption variables to compute MPC for
+        variables = ['e', 'ct', 'cnt']
+
+        # Step 3: Loop over variables and compute MPC with extrapolation
+        for var in variables:
+            cons = getattr(ss, var)  # e.g., model.ss.e, shape (2, 7, 500)
+
+            # Compute finite differences over assets
+            mpc = (cons[:, :, 1:] - cons[:, :, :-1]) / denom  # shape (2, 7, 499)
+
+            # Extrapolate last point using linear extrapolation
+            last_diff = mpc[:, :, -1] - mpc[:, :, -2]         # (2, 7)
+            mpc_last = mpc[:, :, -1] + last_diff              # (2, 7)
+
+            # Append extrapolated value
+            mpc_full = np.concatenate([mpc, mpc_last[:, :, np.newaxis]], axis=2)  # shape (2, 7, 500)
+
+            # Store result back to model.ss
+            setattr(ss, f'MPC_{var}', mpc_full) 
+        
+        
+        # iii. additional variables
+        
+        ss.omegaiT = ss.ct/(ss.ct+ss.cnt)
+        ss.etaiT =  1- par.gamma- ss.omegaiT/(1-ss.omegaiT)   *(par.gamma-par.epsilon)# 1- par.gamma - ss.omegaiT/(1-ss.omegaiT)(par.gamma-par.gamma)

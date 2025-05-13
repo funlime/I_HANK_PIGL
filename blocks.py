@@ -9,12 +9,30 @@ from GEModelTools import lag, lead
 
 
 @nb.njit
-def price_index(P1, P2, eta, alpha): #Helper for price index CPI from section 4.1.3
+def price_index_CES(P1, P2, eta, alpha): #Helper for price index CPI from section 4.1.3
     if isclose(eta,1.0):
         P = P1**alpha * P2**(1-alpha)
     else:
         P = (alpha*P1**(1-eta) + (1-alpha)*P2**(1-eta))**(1/(1-eta))
+    return P 
+
+@nb.njit
+def price_index_PIGL( P1, P2, epsilon, gamma, omega_T):
+    
+    # Cobb Douglas price index
+    if epsilon == 0.0 and gamma == 0.0:
+        P = P1**omega_T*P2**(1-omega_T)
+
+    # Homthetic price index (non-cobb douglas)
+    elif epsilon == 0.0:
+        P = P2 * np.exp(omega_T * ((P1 / P2) ** gamma) * (1 / gamma) * (((P1 / P2) ** gamma) - 1))
+   
+    # Non-homothetic price index 
+    else:
+        P = P2 *(1+omega_T*(epsilon/gamma)*((P1/P2)**gamma-1))**(1/epsilon)
+    
     return P
+
 
 # @nb.njit
 # def price_index(P1,P2,eta,alpha):
@@ -81,18 +99,19 @@ def prices(par,ini,ss,
 
     # b. price indices
 
-    PTHF[:] = price_index(PF,PTH,par.etaF,par.alphaF)
-    PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
+    PTHF[:] = price_index_CES(PF,PTH,par.etaF,par.alphaF)
+    PT[:] = price_index_CES(PE,PTHF,par.etaE,par.alphaE)
 
 
     # c. PIGL Cost of living index for representative agents  (not used - look at first)
     # If epsilon is close to 0 then use the CES price index
-    if isclose(par.epsilon,0) or isclose(par.gamma,0) or par.CES_price_index ==True:
-        P[:] = price_index(PT,PNT,par.eta_T_RA, par.omega_T)
+    P[:] = price_index_PIGL(PT,PNT,par.epsilon, par.gamma, par.omega_T)
+    # if isclose(par.epsilon,0) or isclose(par.gamma,0) or par.CES_price_index ==True:
 
-    else:
-        p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
-        P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+    # else:
+    #     p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
+        # P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+
 
 
 

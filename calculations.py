@@ -131,7 +131,7 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     shock_i = {'di_shock':di_shock}
     shock_PE_i = {'dPE_s':dPE_s, 'di_shock':di_shock}
 
-    return [shock_PE_i, shock_PE_s, shock_forigne_interest, shock_PF_s, shock_PF_s_taylor, shock_PE_PF, shock_PE_PF_taylor, shock_i]
+    return  shock_PE_s #[shock_PE_i, shock_PE_s, shock_forigne_interest, shock_PF_s, shock_PF_s_taylor, shock_PE_PF, shock_PE_PF_taylor, shock_i]
 
 
 

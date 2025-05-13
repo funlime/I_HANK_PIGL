@@ -4,6 +4,11 @@ import time
 import matplotlib.pyplot as plt
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
+
+
+import gc  # For garbage collection
+import itertools
+
 from scipy.interpolate import CubicSpline
 from scipy.stats import norm
 
@@ -73,6 +78,7 @@ pathlabels = {
     # 'w' : 'Real wage rate ($w$)',
     'E_hh': 'Expenditure, EX', 
     'CTH_s': 'Foreign consumption ($C_{TH}$)',
+    'X': 'Real expenditure ($X$)',
 }
 
 
@@ -92,7 +98,7 @@ paths_defaults = {
 
     'standard_vs_data':
         ['YH', 'CT_hh', 'CNT_hh', 'W', 'P', 'w', 'r_real',
-           'Q', 'p', 'inc', 'INC'],
+           'Q', 'p', 'inc', 'INC', 'X'],
 
     'standard_vs_data_w_capital':
         ['Y','C','I','Exports','pi_ann',
@@ -454,11 +460,11 @@ def _plot_IRFs(ax,model,pathname,scale,lstyle,color,lwidth,label,T_max):
             ax.set_ylabel('\% diff. to s.s.')
             ax.set_title(pathlabel)                           
 
-def show_IRFs(models,paths,
+def show_IRFs(models,paths=None,
             #   labels=None,
               T_max=20,scale=False,
               lwidth=1.3,lstyles=None,colors=None,
-              maxcol=5,figsize=None,
+              maxcol=3,figsize=None,
               lfsize=12,legend_window=0,
               compare_LP=None,CI=False,do_stds=False,show=True):
 
@@ -1016,101 +1022,208 @@ def show_MPC_hh(model, linewidth =1.0, type = 0):
 
 
 
-
-def IRF_cohort(model, shock, states= None, T_max=16):
-
+def IRF_cohort(model, model_homo, shock, states=None, T_max=16):
     if states is None:
-        states = {}
-        states['low'] = [0,0,0]
-        states['mid'] = [0,4,10]
-        states['high'] = [0,6,300]
+        states = {
+            'low': [0, 0, 0],   # original values
+            'high': [0, 6, 300]
+        }
 
-    #  Model with paths for inputs
-    model_no_shock = model.copy(name=f'Baseline')
-    model_no_shock.find_ss()
-    model_no_shock.compute_jacs()
-    model_no_shock.find_transition_path(shocks=[])
+    # Precompute SS and JAC once for each base model
+    model_base = model.copy(name='Baseline')
+    model_base.find_ss()
+    model_base.compute_jacs()
 
-    model_shock = model.copy(name=f'Baseline')
-    model_shock.find_ss()
-    model_shock.compute_jacs()
-    model_shock.find_transition_path(shocks=shock, do_end_check=False)
-        
+    model_base_homo = model_homo.copy(name='Baseline Homo')
+    model_base_homo.find_ss()
+    model_base_homo.compute_jacs()
 
+    # Initialize result dictionaries
+    CT_diff, CNT_diff, E_hh_diff, Q_diff, X_diff = {}, {}, {}, {}, {}
+    CT_diff_homo, CNT_diff_homo, E_hh_diff_homo, Q_diff_homo, X_diff_homo = {}, {}, {}, {}, {}
 
-    CT_diff = {}
-    CNT_diff = {}
-    E_hh_diff = {}
-    Q_diff = {}
-    X_diff = {}
-
-
-#------- for each state, simulate the path
-
-    for state in states.keys(): 
-
-        # empty states
+    for state in states:
+        # === Build normalized Dbeg_choice using both 0 and 1 in the first dimension
+        s0, s1, s2 = states[state]
         Dbeg_choice = np.zeros(model.ini.Dbeg.shape)
-        # choose state
-        Dbeg_choice[tuple(states[state])] = 1.0
+        for i in [0, 1]:
+            Dbeg_choice[i, s1, s2] = 1.0
+        Dbeg_choice /= Dbeg_choice.sum()
 
+        # === Standard model
+        model_ns = model_base.copy(name='NoShock')
+        model_ns.find_transition_path(shocks=[])
+        model_ns.simulate_hh_path(Dbeg=Dbeg_choice)
+        model_ns.calc_additional_new()
 
-        # simulate HH path for states before shock
-        model_no_shock.simulate_hh_path(Dbeg = Dbeg_choice)
-        model_no_shock.calc_additional_new()
+        model_s = model_base.copy(name='Shock')
+        model_s.find_transition_path(shocks=shock, do_end_check=False)
+        model_s.simulate_hh_path(Dbeg=Dbeg_choice)
+        model_s.calc_additional_new()
 
+        CT_diff[state] = (model_s.path.CT_hh - model_ns.path.CT_hh) / model_ns.path.CT_hh * 100
+        CNT_diff[state] = (model_s.path.CNT_hh - model_ns.path.CNT_hh) / model_ns.path.CNT_hh * 100
+        E_hh_diff[state] = (model_s.path.E_hh - model_ns.path.E_hh) / model_ns.path.E_hh * 100
+        Q_diff[state] = (model_s.path.Q_hh - model_ns.path.Q_hh) / model_ns.path.Q_hh * 100
+        X_diff[state] = (model_s.path.X_hh - model_ns.path.X_hh) / model_ns.path.X_hh * 100
 
-        # simulate HH path for states after shock
-        model_shock.simulate_hh_path(Dbeg = Dbeg_choice)
-        model_shock.calc_additional_new()
+        del model_ns, model_s
+        gc.collect()
 
+        # === Homo model
+        model_ns_homo = model_base_homo.copy(name='NoShock Homo')
+        model_ns_homo.find_transition_path(shocks=[])
+        model_ns_homo.simulate_hh_path(Dbeg=Dbeg_choice)
+        model_ns_homo.calc_additional_new()
 
-        # Save the difference in paths for CT and CNT
-        CT_diff[state] = (model_shock.path.CT_hh - model_no_shock.path.CT_hh) / model_no_shock.path.CT_hh * 100
-        CNT_diff[state] = (model_shock.path.CNT_hh - model_no_shock.path.CNT_hh) / model_no_shock.path.CNT_hh * 100
-        E_hh_diff[state] = (model_shock.path.E_hh - model_no_shock.path.E_hh) / model_no_shock.path.E_hh * 100
-        Q_diff[state] = (model_shock.path.Q_hh - model_no_shock.path.Q_hh) / model_no_shock.path.Q_hh * 100
-        X_diff[state] = (model_shock.path.X_hh - model_no_shock.path.X_hh) / model_no_shock.path.X_hh * 100
+        model_s_homo = model_base_homo.copy(name='Shock Homo')
+        model_s_homo.find_transition_path(shocks=shock, do_end_check=False)
+        model_s_homo.simulate_hh_path(Dbeg=Dbeg_choice)
+        model_s_homo.calc_additional_new()
 
+        CT_diff_homo[state] = (model_s_homo.path.CT_hh - model_ns_homo.path.CT_hh) / model_ns_homo.path.CT_hh * 100
+        CNT_diff_homo[state] = (model_s_homo.path.CNT_hh - model_ns_homo.path.CNT_hh) / model_ns_homo.path.CNT_hh * 100
+        E_hh_diff_homo[state] = (model_s_homo.path.E_hh - model_ns_homo.path.E_hh) / model_ns_homo.path.E_hh * 100
+        Q_diff_homo[state] = (model_s_homo.path.Q_hh - model_ns_homo.path.Q_hh) / model_ns_homo.path.Q_hh * 100
+        X_diff_homo[state] = (model_s_homo.path.X_hh - model_ns_homo.path.X_hh) / model_ns_homo.path.X_hh * 100
 
+        del model_ns_homo, model_s_homo
+        gc.collect()
+
+    # === Plotting
 
     fig = plt.figure(figsize=(10, 6))
-    ncols = 2
-    nrows = 2
+    ncols, nrows = 2, 2
+
+    # Assign consistent colors to states using a colormap
+    color_cycle = itertools.cycle(plt.rcParams['axes.prop_cycle'].by_key()['color'])
+    state_colors = {state: next(color_cycle) for state in states}
+
+    def plot_panel(ax, title, diff, diff_homo):
+        ax.set_title(title)
+        for state in states:
+            color = state_colors[state]
+            ax.plot(diff[state][:T_max], label=f'{state} inc (Non-homothetic)', linestyle='-', color=color)
+            ax.plot(diff_homo[state][:T_max], label=f'{state} inc (Homothetic)', linestyle='--', color=color)
+        ax.set_xlabel('Quarters')
+        ax.set_ylabel('% diff. to s.s.')
 
 
-
-    ax = fig.add_subplot(ncols, nrows, 1)
-    ax.set_title('Consumption T')
-    for state in states.keys(): 
-        ax.plot(CT_diff[state][:T_max], label=state)
-    ax.legend()
-    ax.set_xlabel('Quarters')
-    ax.set_ylabel('\% diff. to s.s.')
-
-    ax = fig.add_subplot(ncols, nrows, 2)
-    ax.set_title('Consumption NT')
-    for state in states.keys(): 
-        ax.plot(CNT_diff[state][:T_max], label=state)
-    ax.legend()
-    ax.set_xlabel('Quarters')
-    ax.set_ylabel('\% diff. to s.s.')
-
-    ax = fig.add_subplot(ncols, nrows, 3)
-    ax.set_title('P')
-    for state in states.keys(): 
-        ax.plot(Q_diff[state][:T_max], label=state)
-    ax.legend()
-    ax.set_xlabel('Quarters')
-    ax.set_ylabel('\% diff. to s.s.')
-
-    ax = fig.add_subplot(ncols, nrows, 4)
-    ax.set_title('X')
-    for state in states.keys(): 
-        ax.plot(X_diff[state][:T_max], label=state)
-    ax.legend()
-    ax.set_xlabel('Quarters')
-    ax.set_ylabel('\% diff. to s.s.')
-    fig.tight_layout()
+    # Plot layout
+    ax0 = fig.add_subplot(nrows, ncols, 4)
+    plot_panel(ax0, 'Consumption T', CT_diff, CT_diff_homo)
     
+
+    ax1 = fig.add_subplot(nrows, ncols, 3)
+    plot_panel(ax1, 'Consumption NT', CNT_diff, CNT_diff_homo)
+
+    ax2 = fig.add_subplot(nrows, ncols, 1)
+    plot_panel(ax2, 'P', Q_diff, Q_diff_homo)
+
+    ax3 = fig.add_subplot(nrows, ncols, 2)
+    plot_panel(ax3, 'X', X_diff, X_diff_homo)
+
+    # legened outside box 
+    ax0.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+
+    plt.tight_layout(rect=[0, 0, 0.85, 1])
+    return fig
+
+def cum_z_a(model):
+    fig = plt.figure(figsize=(12,4),dpi=100)
+
+# a. income
+    ax = fig.add_subplot(1,2,1)
+    ax.set_title('Productivity')
+
+    ax.plot(model.par.z_grid,np.cumsum(np.sum(model.ss.D[0],axis=1))*model.par.Nfix)
+
+    ax.set_xlabel('Productivity, $z_{t}$')
+    ax.set_ylabel('CDF')
+
+
+    # b. amodel.ssets
+    ax = fig.add_subplot(1,2,2)
+    ax.set_title('Savings')
+
+    ax.plot(np.insert(model.par.a_grid,0,model.par.a_grid[0]),np.insert(np.cumsum(np.sum(model.ss.D[0],axis=0)),0,0.0)*model.par.Nfix,label=f'$\\beta = ')
+    ax.set_xlabel('End-of-period assets $a_{t}$')
+    ax.set_ylabel('CDF')
+    ax.set_xscale('symlog')
+
+    fig.tight_layout()  
+    return fig
+
+
+def plot_trans_matrix(model):
+
+    z_trans = model.ss.z_trans[0,:,:]
+
+    fig = plt.figure(figsize=(6,6))
+    ax = fig.add_subplot(1,1,1)
+    ax.grid(False)
+    h = ax.matshow(z_trans,cmap='Greys',alpha=0.5)
+
+    for (i, j), value in np.ndenumerate(z_trans):
+        ax.text(j, i, f'{value:0.3f}', ha='center', va='center')
+        
+    z_labels = [f'{z:.2f}' for z in model.par.z_grid]
+    xaxis = np.arange(model.par.z_grid.size)
+    ax.set_xticks(xaxis)
+    ax.set_xticklabels(z_labels) 
+    ax.set_yticks(xaxis)
+    ax.set_yticklabels(z_labels) 
+
+    ax.set_xlabel('$z_{t}$')
+    ax.set_ylabel('$z_{t-1}$')
+
+    fig.suptitle('Transition probabilities')
+    fig.tight_layout(pad=0.75)
+    
+    return fig
+
+
+def plot_cor_e(model,ncols = 3, nrows = 1, T_max = 17, type_ = 1):
+
+    fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+    # fig.suptitle(f'{model.name},  Individal Price indexes', fontsize=20)
+
+    # period 0
+
+    ax = fig.add_subplot(nrows,ncols,1)    
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.scatter(  (model.ss.e[type_,inc,:]), model.ss.MPC_e[type_,inc,:], label=f'z = {inc}', s=1)
+        
+    ax.set_xlabel(r' Expenditure ($e_i$)', fontsize=10) # ****
+    ax.set_title('Marginal propensity of Expenditure', fontsize=10) # ****
+    ax.set_ylabel(f'MPE', fontsize=12)
+    ax.legend()
+
+    # period 7 
+
+    ax = fig.add_subplot(nrows,ncols,2)
+
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.scatter( (model.ss.e[type_,inc,:]), model.ss.omegaiT[type_,inc,:], label=f'z = {inc}', s=1)
+    #     # For every period
+    #     ax.scatter(model.ss.MPC_ct[type_,inc,:], (model.path.p[t,type_,inc,:]-1)*100, label=f'z = {inc}', s=1)
+    ax.set_title(f'Tradable goods expenditure share', fontsize=10)
+    ax.set_ylabel(r'$\omega_{iT}$', fontsize=16) # ****
+    ax.set_xlabel(r' Expenditure ($e_i$)', fontsize=10) # ****
+    # ax.legend()
+
+    ax = fig.add_subplot(nrows,ncols,3)
+    # For ever second income
+    for inc in range(0, 7, 2):
+        # For every period
+        ax.scatter( (model.ss.e[type_,inc,:]), model.ss.etaiT[type_,inc,:], label=f'z = {inc}', s=1)
+    ax.set_xlabel(r' Expenditure ($e_i$)', fontsize=10) # ****
+    ax.set_title('Elicticity of substitution', fontsize=10) # ****
+    ax.set_ylabel(r'$\eta_{iT}$', fontsize=16) # ****
+
+    fig.tight_layout()
     return fig
