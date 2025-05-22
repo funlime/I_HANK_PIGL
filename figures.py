@@ -26,7 +26,7 @@ rc('text',usetex=True)
 T_max = 20
 
 
-abs_value = ['Walras']
+abs_value = ['Walras', 'U_hh']
 
 pctp = ['iF_s','piF_s','piF',
         'pi','piNT','piH','ppi','r','i','r_ann','pi_ann',
@@ -77,8 +77,13 @@ pathlabels = {
     'YTH':'Tradeable production ($Y_{TH}$)',
     # 'w' : 'Real wage rate ($w$)',
     'E_hh': 'Expenditure, EX', 
-    'CTH_s': 'Foreign consumption ($C_{TH}$)',
+    'CTH_s': 'Foreign consumption ($C_{TH}^*$)',
     'X': 'Real expenditure ($X$)',
+    'E': 'Nominal Exchange rate ($E$)',
+    'CTH':'Domestic cons. domestic goods ($C_{TH}$)',
+    'CTF':'Domestic cons. foreign goods ($C_{TF}$)',
+    'CE':'Cons. energy ($C_{E}$)',
+    'C_hh': 'TBD'
 }
 
 
@@ -338,7 +343,7 @@ def compare_IRFs_(models_list, ddd):
     labels = []
     for i in models_list:
         labels.append(i.name)
-    print(labels)
+    # print(labels)
     if ddd.filename == None:
         models_list[0].compare_IRFs(models=models_list, labels=labels, varnames=ddd.varnames,  T_max=ddd.T_max, ncols=ddd.ncols, lvl_value=ddd.lvl_value, do_shocks=ddd.do_shocks, do_targets=ddd.do_targets)
     else:
@@ -463,7 +468,7 @@ def _plot_IRFs(ax,model,pathname,scale,lstyle,color,lwidth,label,T_max):
 def show_IRFs(models,paths=None,
             #   labels=None,
               T_max=20,scale=False,
-              lwidth=1.3,lstyles=None,colors=None,
+              lwidth=1.5,lstyles=None,colors=None,
               maxcol=3,figsize=None,
               lfsize=12,legend_window=0,
               compare_LP=None,CI=False,do_stds=False,show=True):
@@ -503,6 +508,7 @@ def show_IRFs(models,paths=None,
 
     for i,pathname in enumerate(paths):
 
+
         ax = fig.add_subplot(nrows,ncols,i+1)
 
         # axis
@@ -529,6 +535,9 @@ def show_IRFs(models,paths=None,
             _plot_IRFs(ax,model_,pathname,scale,lstyle,color,lwidth,label,T_max)
 
             ax.set_xlim([0,T_max-1])
+            # if pathname == 'CT': 
+            #     ax.set_ylim = [-0.7, 0.1]
+
             if i >= ncols*(nrows-1): ax.set_xlabel('Quarters')
             
         if compare_LP is not None:
@@ -869,7 +878,7 @@ def show_pc_IRFs(model):
     return fig
 
 
-def show_p_hh(model, linewidth =1.0, type = 0):
+def show_p_hh(model, linewidth =2.5, type = 0):
 
     ncols = 2
     nrows = 1
@@ -909,7 +918,7 @@ def show_p_hh(model, linewidth =1.0, type = 0):
     fig.tight_layout()
     return fig
 
-def show_p_MPC(model, linewidth =1.0, type = 0):
+def show_p_MPC(model, linewidth =2.5, type = 0):
 
     ncols = 3
     nrows = 1
@@ -966,7 +975,7 @@ def show_p_MPC(model, linewidth =1.0, type = 0):
 
 
 
-def show_MPC_hh(model, linewidth =1.0, type = 0):
+def show_MPC_hh(model, linewidth =2.5, type = 0):
 
     ncols = 3
     nrows = 1
@@ -1022,7 +1031,7 @@ def show_MPC_hh(model, linewidth =1.0, type = 0):
 
 
 
-def IRF_cohort(model, model_homo, shock, states=None, T_max=16):
+def IRF_cohort(model,  shock, model_homo= None, states=None, T_max=16):
     if states is None:
         states = {
             'low': [0, 0, 0],   # original values
@@ -1030,13 +1039,14 @@ def IRF_cohort(model, model_homo, shock, states=None, T_max=16):
         }
 
     # Precompute SS and JAC once for each base model
-    model_base = model.copy(name='Baseline')
+    model_base = model.copy(name=model.name)
     model_base.find_ss()
     model_base.compute_jacs()
 
-    model_base_homo = model_homo.copy(name='Baseline Homo')
-    model_base_homo.find_ss()
-    model_base_homo.compute_jacs()
+    if model_homo != None:
+        model_base_homo = model_homo.copy(name=model_homo.name)
+        model_base_homo.find_ss()
+        model_base_homo.compute_jacs()
 
     # Initialize result dictionaries
     CT_diff, CNT_diff, E_hh_diff, Q_diff, X_diff = {}, {}, {}, {}, {}
@@ -1070,25 +1080,27 @@ def IRF_cohort(model, model_homo, shock, states=None, T_max=16):
         del model_ns, model_s
         gc.collect()
 
-        # === Homo model
-        model_ns_homo = model_base_homo.copy(name='NoShock Homo')
-        model_ns_homo.find_transition_path(shocks=[])
-        model_ns_homo.simulate_hh_path(Dbeg=Dbeg_choice)
-        model_ns_homo.calc_additional_new()
+        if model_homo != None:
 
-        model_s_homo = model_base_homo.copy(name='Shock Homo')
-        model_s_homo.find_transition_path(shocks=shock, do_end_check=False)
-        model_s_homo.simulate_hh_path(Dbeg=Dbeg_choice)
-        model_s_homo.calc_additional_new()
+            # === Homo model
+            model_ns_homo = model_base_homo.copy(name='NoShock Homo')
+            model_ns_homo.find_transition_path(shocks=[])
+            model_ns_homo.simulate_hh_path(Dbeg=Dbeg_choice)
+            model_ns_homo.calc_additional_new()
 
-        CT_diff_homo[state] = (model_s_homo.path.CT_hh - model_ns_homo.path.CT_hh) / model_ns_homo.path.CT_hh * 100
-        CNT_diff_homo[state] = (model_s_homo.path.CNT_hh - model_ns_homo.path.CNT_hh) / model_ns_homo.path.CNT_hh * 100
-        E_hh_diff_homo[state] = (model_s_homo.path.E_hh - model_ns_homo.path.E_hh) / model_ns_homo.path.E_hh * 100
-        Q_diff_homo[state] = (model_s_homo.path.Q_hh - model_ns_homo.path.Q_hh) / model_ns_homo.path.Q_hh * 100
-        X_diff_homo[state] = (model_s_homo.path.X_hh - model_ns_homo.path.X_hh) / model_ns_homo.path.X_hh * 100
+            model_s_homo = model_base_homo.copy(name='Shock Homo')
+            model_s_homo.find_transition_path(shocks=shock, do_end_check=False)
+            model_s_homo.simulate_hh_path(Dbeg=Dbeg_choice)
+            model_s_homo.calc_additional_new()
 
-        del model_ns_homo, model_s_homo
-        gc.collect()
+            CT_diff_homo[state] = (model_s_homo.path.CT_hh - model_ns_homo.path.CT_hh) / model_ns_homo.path.CT_hh * 100
+            CNT_diff_homo[state] = (model_s_homo.path.CNT_hh - model_ns_homo.path.CNT_hh) / model_ns_homo.path.CNT_hh * 100
+            E_hh_diff_homo[state] = (model_s_homo.path.E_hh - model_ns_homo.path.E_hh) / model_ns_homo.path.E_hh * 100
+            Q_diff_homo[state] = (model_s_homo.path.Q_hh - model_ns_homo.path.Q_hh) / model_ns_homo.path.Q_hh * 100
+            X_diff_homo[state] = (model_s_homo.path.X_hh - model_ns_homo.path.X_hh) / model_ns_homo.path.X_hh * 100
+
+            del model_ns_homo, model_s_homo
+            gc.collect()
 
     # === Plotting
 
@@ -1103,8 +1115,9 @@ def IRF_cohort(model, model_homo, shock, states=None, T_max=16):
         ax.set_title(title)
         for state in states:
             color = state_colors[state]
-            ax.plot(diff[state][:T_max], label=f'{state} inc (Non-homothetic)', linestyle='-', color=color)
-            ax.plot(diff_homo[state][:T_max], label=f'{state} inc (Homothetic)', linestyle='--', color=color)
+            ax.plot(diff[state][:T_max], label=f'{state} Baseline', linestyle='-', color=color)
+            if model_homo != None:
+                ax.plot(diff_homo[state][:T_max], label=f'{state} Alternative', linestyle='--', color=color)
         ax.set_xlabel('Quarters')
         ax.set_ylabel('% diff. to s.s.')
 

@@ -329,7 +329,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         A = ss.e.ravel()
         B = ct_exp_share.ravel()
         w = ss.D.ravel()
-        print(np.max(A))
+        # print(np.max(A))
 
         # Normalize weights to sum to 1
         w /= np.sum(w)

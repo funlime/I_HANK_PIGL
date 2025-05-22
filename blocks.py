@@ -147,7 +147,12 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
     # Agregate inflaiton, how to weight tradable and non tradable inflation 
 
     # 1. setting interest rate
+
+
     if par.float == True: # taylor rule
+        # i_lag = lag(ini.i,i) # Virker ikke:(
+        # print(i_lag)
+        # i_lag = lag(ss.i, i)
 
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
@@ -160,11 +165,14 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
             i[:] = ss.i + par.phi*pi_DomP + i_shock  # Taylor rule following domestic price index
  
 
-
-        if par.mon_policy == 'taylor_persistant':
-
-            lag_i = lag(ini.i,i)
-            i[:] = (1+lag_i)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
+        # if par.mon_policy == 'taylor_persistant':
+        #     for t in range(par.T):
+        #         i_lag = i[t-1] if t > 0 else ini.i
+        #         i[t] = (1+i_lag)**par.rho_i*((1+ss.r)*(1+pi[t])**(par.phi_pi))**(1-par.rho_i)-1
+        
+            # lag_i = lag(ini.i,i)
+            # i[:] =  (1+i_lag)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
+            # i[:] =  (1+i_lag)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
    
 
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
