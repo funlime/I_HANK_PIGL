@@ -122,7 +122,7 @@ def prices(par,ini,ss,
     if par.real_exchange_rate_PTH:
         Q[:] = PF/PTH
     else:
-        Q[:] = PF/P  #*** Consider changing to PTH instead of P
+        Q[:] = PF/P  
 
 
     # Calculate domestic price index using Paasche price index (sum of NT and H)

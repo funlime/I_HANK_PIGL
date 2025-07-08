@@ -68,14 +68,17 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.real_exchange_rate_PTH  = False
 
         # New 
-        par.epsilon = 0.18 # controls the degree of non-homotheticity 
-        par.gamma = 0.29 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
-        par.nu = 0.7 # Scalling parameter
+        par.epsilon = 0.22 # controls the degree of non-homotheticity 
+        par.gamma = 0.25 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
+        par.gamma_homo = 0.12
+        # par.epsilon = 0.18 # controls the degree of non-homotheticity 
+        # par.gamma = 0.29 # controls the non-constant elicticity of substitution  between tradable and non-tradable goods
+        par.nu = 0.55 # Scalling parameter
         par.omega_T = np.nan # agregate expenditure share on tradables in steady state
         par.run_u = False
         par.mon_policy = 'taylor'
         par.pf_fixed = True
-        par.etaE = 0.1 # elasticity of substitution between tradable goods and energy 
+        par.etaE = 0.4 # elasticity of substitution between tradable goods and energy 
         par.alphaE = 0.05 # share of energy in tradable + energy consumption
         par.eta_T_RA = np.nan
         # par.phi_inflation = 1.0
@@ -99,10 +102,10 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.beta = 0.985 #0.975 # discount factor
         par.sigma = 2.0 # inverse of intertemporal elasticity of substitution
 
-        par.alphaT = np.nan # share of tradeable goods in home consumption (determined in ss)
-        par.etaT = 0.5 #2.0 # elasticity of substitution between tradeable and non-tradeable goods
+        # par.alphaT = np.nan # share of tradeable goods in home consumption (determined in ss)
+        # par.etaT = 0.5 #2.0 # elasticity of substitution between tradeable and non-tradeable goods
         
-        par.alphaF = 1/3 # share of foreign goods in home tradeable consumption
+        par.alphaF = 0.3 # share of foreign goods in home tradeable consumption
         par.etaF = 0.51 #*** # elasticity of substitution between home and foreign tradeable goods
           
         par.varphiTH = np.nan # disutility of labor in tradeable sector (determined in s)
@@ -110,25 +113,29 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.kappa = 2.0 # Frisch elasticity of labor supply
               
         # c. income parameters
-        par.rho_z = 0.95 # AR(1) parameter
-        par.sigma_psi = 0.10 # std. of psi
+        par.rho_z = 0.966 # AR(1) coefficient for idiosyncratic productivity Floden and Linde (2001) calibration
+        par.sigma_psi = 0.13 # std. of psi - Floden and Linde (2001) calibration
         
         # d. price setting
         # NKWPC
-        par.kappa_w = 0.05 # slope of wage Phillips curve
-        par.mu_w = 1.2 # wage mark-up       
+        # par.kappa_w = 0.05 # slope of wage Phillips curve
+        # par.mu_w = 1.2 # wage mark-up     
+        par.kappa_w = 0.03 # slope of wage Phillips curve
+        par.mu_w = 1.1 # wage mark-up       
  
         # NKPC
-        par.kappa_p = 0.1 # slope of price Phillips curve
-        par.mu_p = 1.2 # wage mark-down
+        # par.kappa_p = 0.1 # slope of price Phillips curve
+        # par.mu_p = 1.2 # wage mark-down
+        par.kappa_p = 0.15 # slope of price Phillips curve
+        par.mu_p = 1.1 # wage mark-down
 
         # e. foreign Economy
         par.rF_ss = 0.005 # exogenous foreign interest rate
-        par.eta_s =  0.5 # # Armington elasticity of foreign demand
+        par.eta_s =  0.51 # # Armington elasticity of foreign demand
         par.M_s_ss = np.nan # size of foreign market (determined in ss)
 
         # f. government
-        par.tau_ss = 0.30 # tax rate on labor income
+        par.tau_ss = 0.20 # tax rate on labor income
         par.omega = 0.10 # tax sensitivity to debt
 
         # central bank
