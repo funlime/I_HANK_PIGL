@@ -84,7 +84,8 @@ pathlabels = {
     'CTH':'Domestic cons. domestic goods ($C_{TH}$)',
     'CTF':'Domestic cons. foreign goods ($C_{TF}$)',
     'CE':'Cons. energy ($C_{E}$)',
-    'C_hh': 'TBD'
+    'C_hh': 'TBD',
+    # 'DomP': 'Domestic price ($P_{Dom}}$)'
 }
 
 
@@ -514,8 +515,10 @@ def show_IRFs(models,paths=None,
 
         # axis
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        if T_max < 100:
+        if T_max < 30:
             ax.set_xticks(np.arange(0,T_max,4))
+        else:
+            ax.set_xticks(np.arange(0,T_max,8))
         
         # models
         for j, model_ in enumerate(models):  

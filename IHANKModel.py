@@ -76,7 +76,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.nu = 0.55 # Scalling parameter
         par.omega_T = np.nan # agregate expenditure share on tradables in steady state
         par.run_u = False
-        par.mon_policy = 'taylor'
+        par.mon_policy = 'taylor_persistence' #'taylor'
         par.pf_fixed = True
         par.etaE = 0.4 # elasticity of substitution between tradable goods and energy 
         par.alphaE = 0.05 # share of energy in tradable + energy consumption
@@ -95,7 +95,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         
         
         # Variables Monitary policy  
-        par.rho_i = 0.9 # persistance of monetary policy
+        par.rho_i = 0.3 # persistance of monetary policy
         par.phi_pi = 1.5 # inflation coefficient
 
         # b. preferences

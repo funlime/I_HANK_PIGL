@@ -157,6 +157,7 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
 
+
         if par.mon_policy == 'taylor_ppi_lead':
             pi_DomP_plus = lead(pi_DomP,ss.pi_DomP)
             i[:] = ss.i + par.phi*pi_DomP_plus + i_shock  # Taylor rule following domestic price index
@@ -165,10 +166,23 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
             i[:] = ss.i + par.phi*pi_DomP + i_shock  # Taylor rule following domestic price index
  
 
-        # if par.mon_policy == 'taylor_persistant':
-        #     for t in range(par.T):
-        #         i_lag = i[t-1] if t > 0 else ini.i
-        #         i[t] = (1+i_lag)**par.rho_i*((1+ss.r)*(1+pi[t])**(par.phi_pi))**(1-par.rho_i)-1
+
+        if par.mon_policy == 'taylor_persistence':
+ 
+            for t in range(par.T):
+
+                # i[t] = ss.i + par.phi*pi[t] #+ i_shock
+            # a. nominal interest on last period bonds and last period nominal bonds
+                i_lag = prev(i,t,ini.i)  
+
+                # i_lag = i[t-1] if t > 0 else ini.i
+
+                i[t] = (1+i_lag)**par.rho_i*((1+ss.i)*(1+pi[t])**(par.phi_pi))**(1-par.rho_i)-1
+        
+
+            # for t in range(par.T):
+            #     i_lag = i[t-1] if t > 0 else ini.i
+            #     i[t] = (1+i_lag)**par.rho_i*((1+ss.r)*(1+pi[t])**(par.phi_pi))**(1-par.rho_i)-1
         
             # lag_i = lag(ini.i,i)
             # i[:] =  (1+i_lag)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
