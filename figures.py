@@ -1415,3 +1415,273 @@ def IRF_cohort_x(model,  shock, model_homo= None, states=None):
 
     plt.tight_layout(rect=[0, 0, 0.85, 1])
     return fig
+
+
+def show_states(model, shock, model_alt=None, states=None, T_max=20):
+    if states is None:
+        states = {
+            'Poor': [0, 0, 0],
+            'Rich': [0, 6, 300]
+        }
+
+    # ======= Initialize result dictionaries ========
+    CT_diff, CNT_diff, E_hh_diff, Q_diff, X_diff, A_diff = {}, {}, {}, {}, {}, {}
+    CT_diff_alt, CNT_diff_alt, E_hh_diff_alt, Q_diff_alt, X_diff_alt, A_diff_alt = {}, {}, {}, {}, {}, {}
+
+    # === Base model ===
+    model_base = model.copy(name=model.name)
+    model_base.find_ss()
+    model_base.compute_jacs()
+
+    model_ns = model_base.copy(name='NoShock')
+    model_ns.find_transition_path(shocks=[])
+
+    model_s = model_base.copy(name='Shock')
+    model_s.find_transition_path(shocks=shock, do_end_check=False)
+
+    for state in states:
+        s0, s1, s2 = states[state]
+
+        Dbeg_choice = np.zeros(model.ini.Dbeg.shape)
+        for i in [0, 1]:
+            Dbeg_choice[i, s1, s2] = 1.0
+        Dbeg_choice /= Dbeg_choice.sum()
+
+        model_ns.simulate_hh_path(Dbeg=Dbeg_choice)
+        model_ns.calc_additional_new()
+
+        model_s.simulate_hh_path(Dbeg=Dbeg_choice)
+        model_s.calc_additional_new()
+
+        CT_diff[state] = (model_s.path.CT_hh - model_ns.path.CT_hh) / model_ns.path.CT_hh * 100
+        CNT_diff[state] = (model_s.path.CNT_hh - model_ns.path.CNT_hh) / model_ns.path.CNT_hh * 100
+        E_hh_diff[state] = (model_s.path.E_hh - model_ns.path.E_hh) / model_ns.path.E_hh * 100
+        Q_diff[state] = (model_s.path.Q_hh - model_ns.path.Q_hh) / model_ns.path.Q_hh * 100
+        X_diff[state] = (model_s.path.X_hh - model_ns.path.X_hh) / model_ns.path.X_hh * 100
+        A_diff[state] = (model_s.path.A_hh - model_ns.path.A_hh)  # no percent
+
+    del model_ns, model_s
+    gc.collect()
+
+    # === Alternative model ===
+    if model_alt is not None:
+        model_base_alt = model_alt.copy(name=model_alt.name)
+        model_base_alt.find_ss()
+        model_base_alt.compute_jacs()
+
+        for state in states:
+            s0, s1, s2 = states[state]
+
+            Dbeg_choice = np.zeros(model.ini.Dbeg.shape)
+            for i in [0, 1]:
+                Dbeg_choice[i, s1, s2] = 1.0
+            Dbeg_choice /= Dbeg_choice.sum()
+
+            model_ns_alt = model_base_alt.copy(name='NoShock Homo')
+            model_ns_alt.find_transition_path(shocks=[])
+            model_ns_alt.simulate_hh_path(Dbeg=Dbeg_choice)
+            model_ns_alt.calc_additional_new()
+
+            model_s_alt = model_base_alt.copy(name='Shock Homo')
+            model_s_alt.find_transition_path(shocks=shock, do_end_check=False)
+            model_s_alt.simulate_hh_path(Dbeg=Dbeg_choice)
+            model_s_alt.calc_additional_new()
+
+            CT_diff_alt[state] = (model_s_alt.path.CT_hh - model_ns_alt.path.CT_hh) / model_ns_alt.path.CT_hh * 100
+            CNT_diff_alt[state] = (model_s_alt.path.CNT_hh - model_ns_alt.path.CNT_hh) / model_ns_alt.path.CNT_hh * 100
+            E_hh_diff_alt[state] = (model_s_alt.path.E_hh - model_ns_alt.path.E_hh) / model_ns_alt.path.E_hh * 100
+            Q_diff_alt[state] = (model_s_alt.path.Q_hh - model_ns_alt.path.Q_hh) / model_ns_alt.path.Q_hh * 100
+            X_diff_alt[state] = (model_s_alt.path.X_hh - model_ns_alt.path.X_hh) / model_ns_alt.path.X_hh * 100
+            A_diff_alt[state] = (model_s_alt.path.A_hh - model_ns_alt.path.A_hh) / model_ns_alt.path.A_hh * 100
+
+        del model_ns_alt, model_s_alt
+        gc.collect()
+
+    # === Plotting ===
+    color_cycle = itertools.cycle(plt.rcParams['axes.prop_cycle'].by_key()['color'])
+    state_colors = {state: next(color_cycle) for state in states}
+
+    # --- Fig 1: Real Expenditure Only ---
+    fig_1 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
+    ax = fig_1.add_subplot(1, 2, 1)
+    for state in states:
+        ax.plot(X_diff[state][:T_max], color=state_colors[state], label=state)
+    # if model_alt is not None:
+    #     for state in states:
+    #         ax.plot(X_diff_alt[state][:T_max], color=state_colors[state], linestyle='--')
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title(r'Real expenditure ($X$)')
+    ax.set_xlabel('Quarters')
+    ax.legend()
+    ax.set_xticks(np.arange(0, T_max, 4))
+
+
+
+
+    # --- Fig 2: Prices and Real Expenditure ---
+    fig_2 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
+    ax = fig_2.add_subplot(1, 2, 1)
+
+    ax.plot(Q_diff['Rich'][:T_max], c='black', label='Homothetic', ls='-')
+
+    if model_alt is not None:
+        for state in states:
+            ax.plot(Q_diff_alt[state][:T_max], color=state_colors[state], ls='--')
+
+
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title(r'Prices ($P$)')
+    ax.set_xlabel('Quarters')
+    ax.legend()
+    ax.set_xticks(np.arange(0, T_max, 4))
+
+
+
+    ax = fig_2.add_subplot(1, 2, 2)
+    for state in states:
+        ax.plot(X_diff[state][:T_max], color=state_colors[state], label=state)
+    if model_alt is not None:
+        for state in states:
+            ax.plot(X_diff_alt[state][:T_max], color=state_colors[state], ls='--')
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title(r'Real expenditure ($X$)')
+    ax.set_xlabel('Quarters')
+    ax.legend()
+    ax.set_xticks(np.arange(0, T_max, 4))
+
+    fig_2.tight_layout()
+
+
+
+    # --- Fig 3: CNT and CT ---
+    fig_3 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
+    ax = fig_3.add_subplot(1, 2, 1)
+    
+    for state in states:
+        ax.plot(CNT_diff[state][:T_max], color=state_colors[state], label=state)
+    if model_alt is not None:
+        for state in states:
+            ax.plot(CNT_diff_alt[state][:T_max], color=state_colors[state], ls='--')
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title(r'Non-tradables cons. ($C_{NT}$)')
+    ax.set_xlabel('Quarters')
+    ax.set_xticks(np.arange(0, T_max, 4))
+
+    ax = fig_3.add_subplot(1, 2, 2)
+    for state in states:
+        ax.plot(CT_diff[state][:T_max], color=state_colors[state], label=state)
+    if model_alt is not None:
+        for state in states:
+            ax.plot(CT_diff_alt[state][:T_max], color=state_colors[state], ls='--')
+    ax.set_ylabel('\% diff. to s.s.')
+    ax.set_title(r'Tradables cons. ($C_T$)')
+    ax.set_xlabel('Quarters')
+    ax.legend()
+    ax.set_xticks(np.arange(0, T_max, 4))
+
+    fig_3.tight_layout()
+
+    return fig_1, fig_2, fig_3
+
+
+
+def show_coh_and_mpc(model):
+    model.calc_MPCs()
+
+    # Chash on Hand
+    coh = model.ss.a[:,:,:] + model.ss.e[:,:,:]
+    # Density of 
+    D = model.ss.D
+
+    # Flatten arrays
+    coh_flat = coh.flatten()
+    D_flat = D.flatten()
+
+
+    ncols = 2
+    nrows = 1
+
+    fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+
+    ax = fig.add_subplot(121)
+    # Plot the histogram with density
+    ax.hist(coh_flat, bins=200, weights=D_flat, density=False, edgecolor='k', color='grey', alpha=0.7)
+    ax.set_xlabel('Cash-on-hand')
+    ax.set_ylabel('Density')
+    # ax.set_title('Distribution of Household Cash on Hand')
+    ax.set_xlim(0, 10)
+
+
+    MPC_s = model.ss.MPC_e
+    coh = model.ss.a[:,:,:] + model.ss.e[:,:,:]
+
+
+
+    # Flatten arrays
+    MPC_s_flat = MPC_s.flatten()
+    coh_flat = coh.flatten()
+
+    # Create a scatter plot of MPCs against cash on hand
+
+    ax = fig.add_subplot(122)
+    ax.scatter(coh_flat, MPC_s_flat, s=1, color='grey', alpha=0.5)
+    ax.set_xlabel('Cash-on-hand')
+    ax.set_ylabel('MPC')
+
+    ax.set_xlim(0, 10)
+
+    fig.tight_layout()
+
+    return fig
+
+
+
+
+def show_pi(model):
+
+    model.calc_MPCs()
+    model.calc_X_P()
+
+    # Chash on Hand
+    coh = model.ss.a[:,:,:] + model.ss.e[:,:,:]
+    # Density of 
+    D = model.ss.D
+    # Prices
+    q = (model.path.q[1,:,:,:]-1)*100
+    # MPCs
+    MPC_s = model.ss.MPC_e
+
+    e = model.ss.e
+
+
+    # Flatten arrays
+    coh_flat = coh.flatten()
+    D_flat = D.flatten()
+    MPC_s_flat = MPC_s.flatten()
+    q_flat = q.flatten()
+    e_flat = e.flatten()
+
+
+    ncols = 2
+    nrows = 1
+
+    fig = plt.figure(figsize=(4.3*ncols/1.1,3.6*nrows/1.2),dpi=100)
+
+    ax = fig.add_subplot(121)
+    ax.scatter(e_flat, q_flat, s=1, color='grey', alpha=0.5)
+    ax.set_xlabel(r'Expenditure $e_i$')
+    ax.set_ylabel(r'$p_{i,0}$')
+
+    ax.set_xlim(0, 4)
+
+
+    ax = fig.add_subplot(122)
+    ax.scatter(MPC_s_flat, q_flat, s=1, color='grey', alpha=0.5)
+    ax.set_xlabel('MPCs')
+    ax.set_ylabel(r'$p_{i,0}$')
+
+    ax.set_xlim(0, 1)
+
+    fig.tight_layout()
+
+    return fig
