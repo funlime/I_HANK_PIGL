@@ -149,7 +149,7 @@ def obj_ss(x, model, do_print=False):
 
     # Nominal values
     ss.EX = ss.E_hh*ss.PNT # Expenditure
-    ss.A = ss.A_hh*ss.PNT
+    ss.A = ss.A_real =  ss.A_hh*ss.PNT
 
     # d. government bonds (nominal)
     ss.B = ss.A

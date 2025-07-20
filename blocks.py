@@ -119,7 +119,7 @@ def prices(par,ini,ss,
 
     # # c. real exchange rate
 
-    if par.real_exchange_rate_PTH:
+    if par.real_exchange_rate_PTH: # False in basline 
         Q[:] = PF/PTH
     else:
         Q[:] = PF/P  
@@ -441,7 +441,7 @@ def market_clearing(par,ini,ss,
 @nb.njit
 def accounting(par,ini,ss,
                PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra, adj_TH, adj_NT,
-               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau, X, E_hh):
+               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau, X, E_hh, A_real):
     
 
     # not in use     
@@ -479,4 +479,5 @@ def accounting(par,ini,ss,
     INC[:] = (inc_NT + inc_TH)*PNT
     inc[:] = INC/P
     X[:] = (E_hh*PNT)/P
+    A_real[:] = A/P
    

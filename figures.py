@@ -38,14 +38,15 @@ pctp = ['iF_s','piF_s','piF',
 pathlabels = {
 
     'YH': 'Real GDP',
-    'P': 'CPI, $P$',
-    'W': 'Wages, $W$',
+    'P': 'CPI $(P)$',
+    'W': 'Wages $(W)$',
     'w': 'Real wages $w$',
-    'r_real': 'Real initerest rate, $r$',
+    'r_real': 'Real initerest rate $(r)$',
     'PE':'Price of energy $P_E$',
     'PT': '$P_T$', 
     'PNT': '$P_{NT}$',
     'p': '$P_T/P_{NT}$',
+    'PTH_s': 'Export price ($P_{TH}^*$)',
     'CNT_hh':'Cons. of non-tradeables ($C_{NT}$)',
     'CT_hh':'Cons. of tradeables ($C_{T}$)',
     'CNT':'Cons. of non-tradeables ($C_{NT}$)',
@@ -54,6 +55,7 @@ pathlabels = {
     'Exports':'Exports',
     'i_ann':'Nominal interest rate, annual ($i$)',
     'I':'Investment ($I$)',
+    'i':'Nominal interest rate ($i$)',
     'iF_s':'Foreign interest rate ($i^*$)',
     'Imports':'Imports',
     'labor_comp':'Wage Income ($wN$)',
@@ -85,6 +87,8 @@ pathlabels = {
     'CTF':'Domestic cons. foreign goods ($C_{TF}$)',
     'CE':'Cons. energy ($C_{E}$)',
     'C_hh': 'TBD',
+    # 'A_hh': 'Real Assets ($A_{real}$)',
+    'A_real': 'Real Assets ($A_{real}$)',
     # 'DomP': 'Domestic price ($P_{Dom}}$)'
 }
 
