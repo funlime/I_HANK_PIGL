@@ -1438,7 +1438,7 @@ def show_states(model, shock, model_alt=None, states=None, T_max=20):
     model_base.compute_jacs()
 
     model_ns = model_base.copy(name='NoShock')
-    model_ns.find_transition_path(shocks=[])
+    model_ns.find_transition_path(shocks=[], do_end_check=False)
 
     model_s = model_base.copy(name='Shock')
     model_s.find_transition_path(shocks=shock, do_end_check=False)
