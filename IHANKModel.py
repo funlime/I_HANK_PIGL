@@ -76,7 +76,7 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.nu = 0.585 # Scalling parameter
         par.omega_T = np.nan # agregate expenditure share on tradables in steady state
         par.run_u = False
-        par.mon_policy = 'taylor_persistence' #'taylor'
+        par.mon_policy = 'taylor' # 'taylor_persistence' 
         par.pf_fixed = True
         # par.etaE = 0.4 # elasticity of substitution between tradable goods and energy 
         par.etaE = 0.1 # elasticity of substitution between tradable goods and energy 
@@ -101,9 +101,10 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.phi_pi = 1.5 # inflation coefficient
 
         # b. preferences
-        par.beta = 0.99 #0.975 # discount factor
-        par.sigma = 2.0 # inverse of intertemporal elasticity of substitution
-
+        par.beta = 0.985 #0.975 # discount factor
+        # par.beta = 0.99 #0.975 # discount factor
+        par.sigma = 2.0
+        
         # par.alphaT = np.nan # share of tradeable goods in home consumption (determined in ss)
         # par.etaT = 0.5 #2.0 # elasticity of substitution between tradeable and non-tradeable goods
         
@@ -115,8 +116,10 @@ class IHANKModelClass(EconModelClass,GEModelClass):
         par.kappa = 2.0 # Frisch elasticity of labor supply
               
         # c. income parameters
-        par.rho_z = 0.966 # AR(1) coefficient for idiosyncratic productivity Floden and Linde (2001) calibration
-        par.sigma_psi = 0.13 # std. of psi - Floden and Linde (2001) calibration
+        par.rho_z = 0.95 # AR(1) parameter
+        par.sigma_psi = 0.10 # std. of psi
+        # par.rho_z = 0.966 # AR(1) coefficient for idiosyncratic productivity Floden and Linde (2001) calibration
+        # par.sigma_psi = 0.13 # std. of psi - Floden and Linde (2001) calibration
         
         # d. price setting
         # NKWPC

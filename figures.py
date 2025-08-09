@@ -1120,7 +1120,8 @@ def IRF_cohort_old(model,  shock, model_homo= None, states=None):
 
     # === Plotting
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(7.5, 5))
+    # fig = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
     ncols, nrows = 2, 2
 
     # Assign consistent colors to states using a colormap
