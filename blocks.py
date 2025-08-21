@@ -9,12 +9,30 @@ from GEModelTools import lag, lead
 
 
 @nb.njit
-def price_index(P1, P2, eta, alpha): #Helper for price index CPI from section 4.1.3
+def price_index_CES(P1, P2, eta, alpha): #Helper for price index CPI from section 4.1.3
     if isclose(eta,1.0):
         P = P1**alpha * P2**(1-alpha)
     else:
         P = (alpha*P1**(1-eta) + (1-alpha)*P2**(1-eta))**(1/(1-eta))
+    return P 
+
+@nb.njit
+def price_index_PIGL( P1, P2, epsilon, gamma, omega_T):
+    
+    # Cobb Douglas price index
+    if epsilon == 0.0 and gamma == 0.0:
+        P = P1**omega_T*P2**(1-omega_T)
+
+    # Homthetic price index (non-cobb douglas)
+    elif epsilon == 0.0:
+        P = P2 * np.exp(omega_T * ((P1 / P2) ** gamma) * (1 / gamma) * (((P1 / P2) ** gamma) - 1))
+   
+    # Non-homothetic price index 
+    else:
+        P = P2 *(1+omega_T*(epsilon/gamma)*((P1/P2)**gamma-1))**(1/epsilon)
+    
     return P
+
 
 # @nb.njit
 # def price_index(P1,P2,eta,alpha):
@@ -81,28 +99,30 @@ def prices(par,ini,ss,
 
     # b. price indices
 
-    PTHF[:] = price_index(PF,PTH,par.etaF,par.alphaF)
-    PT[:] = price_index(PE,PTHF,par.etaE,par.alphaE)
+    PTHF[:] = price_index_CES(PF,PTH,par.etaF,par.alphaF)
+    PT[:] = price_index_CES(PE,PTHF,par.etaE,par.alphaE)
 
 
     # c. PIGL Cost of living index for representative agents  (not used - look at first)
     # If epsilon is close to 0 then use the CES price index
-    if isclose(par.epsilon,0) or isclose(par.gamma,0) or par.CES_price_index ==True:
-        P[:] = price_index(PT,PNT,par.eta_T_RA, par.omega_T)
+    P[:] = price_index_PIGL(PT,PNT,par.epsilon, par.gamma, par.omega_T)
+    # if isclose(par.epsilon,0) or isclose(par.gamma,0) or par.CES_price_index ==True:
 
-    else:
-        p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
-        P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+    # else:
+    #     p_tilde = ((1-(par.epsilon*par.omega_T)/par.gamma)*PNT**par.gamma + ((par.epsilon*par.omega_T)/par.gamma)*PT**par.gamma)**(1/par.gamma)
+        # P[:] = p_tilde**(par.gamma/par.epsilon)*PNT**(1-par.gamma/par.epsilon)
+
 
 
 
     # CES price index using average tradable share and  elasticity of substitution of average houshold from ss
 
-    # c. real exchange rate
-    if par.real_exchange_rate_PTH:
+    # # c. real exchange rate
+
+    if par.real_exchange_rate_PTH: # False in basline 
         Q[:] = PF/PTH
     else:
-        Q[:] = PF/P  #*** Consider changing to PTH instead of P
+        Q[:] = PF/P  
 
 
     # Calculate domestic price index using Paasche price index (sum of NT and H)
@@ -127,10 +147,16 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
     # Agregate inflaiton, how to weight tradable and non tradable inflation 
 
     # 1. setting interest rate
+
+
     if par.float == True: # taylor rule
+        # i_lag = lag(ini.i,i) # Virker ikke:(
+        # print(i_lag)
+        # i_lag = lag(ss.i, i)
 
         pi_plus = lead(pi,ss.pi)
         pi_plus_NT = lead(pi_NT,ss.pi_NT)
+
 
         if par.mon_policy == 'taylor_ppi_lead':
             pi_DomP_plus = lead(pi_DomP,ss.pi_DomP)
@@ -141,10 +167,26 @@ def central_bank(par,ini,ss,pi,i, i_shock,CB, pi_NT, r_real, pi_DomP):
  
 
 
-        if par.mon_policy == 'taylor_persistant':
+        if par.mon_policy == 'taylor_persistence':
+ 
+            for t in range(par.T):
 
-                lag_i = lag(ini.i,i)
-                i[:] = (1+lag_i)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
+                # i[t] = ss.i + par.phi*pi[t] #+ i_shock
+            # a. nominal interest on last period bonds and last period nominal bonds
+                i_lag = prev(i,t,ini.i)  
+
+                # i_lag = i[t-1] if t > 0 else ini.i
+
+                i[t] = (1+i_lag)**par.rho_i*((1+ss.i)*(1+pi[t])**(par.phi_pi))**(1-par.rho_i)-1
+        
+
+            # for t in range(par.T):
+            #     i_lag = i[t-1] if t > 0 else ini.i
+            #     i[t] = (1+i_lag)**par.rho_i*((1+ss.r)*(1+pi[t])**(par.phi_pi))**(1-par.rho_i)-1
+        
+            # lag_i = lag(ini.i,i)
+            # i[:] =  (1+i_lag)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
+            # i[:] =  (1+i_lag)**par.rho_i*((1+ss.i)*(1+pi)**(par.phi_pi))**(1-par.rho_i)-1
    
 
         if par.mon_policy == 'taylor':  # Taylor rule  *** Consider changing to current instead of lead inflaiton 
@@ -302,28 +344,70 @@ def HH_post(par,ini,ss,
 
 @nb.njit
 def NKWCs(par,ini,ss,
-          piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT):
+          piWTH,piWNT,NTH,NNT,WTH, WNT, wTH,wNT,tau,UC_TH_hh,UC_NT_hh,NKWCT_res,NKWCNT_res, PNT, P):
+
+    # a. phillips curve tradeable
+    piWTH_plus = lead(piWTH,ss.piWTH)
+
+    # RHS 
+    MDUL = par.varphiTH*(NTH/par.sT)**par.kappa 
+    MUC = UC_TH_hh
+
+    wage_PNTt = (1-tau)*(WTH/PNT)
+    Real_wage_motive = (WTH/P)**par.real_wage_motive
+
+    numerator = MDUL/MUC
+    denominator = (1/par.mu_w) * wage_PNTt * Real_wage_motive
+
+    RHS = par.kappa_w*(numerator/denominator - 1) + par.beta*piWTH_plus
+
+    # LHS
+    LHS = piWTH
+
+    NKWCT_res[:] = LHS-RHS # Target
 
 
-    # a. Real wage in terms of PNT 
+
+    #  b. phillips curve non-tradeable
+    piWNT_plus = lead(piWNT,ss.piWNT)
+
+    # RHS 
+    MDUL = par.varphiNT*(NNT/par.sNT)**par.kappa 
+    MUC = UC_NT_hh
+
+    wage_PNTt = (1-tau)*(WNT/PNT)
+    Real_wage_motive = (WNT/P)**par.real_wage_motive
+
+    numerator = MDUL/MUC
+    denominator = (1/par.mu_w) * wage_PNTt * Real_wage_motive
+
+    RHS = par.kappa_w*(numerator/denominator - 1) + par.beta*piWNT_plus
+
+    # LHS
+    LHS = piWNT
+
+    NKWCNT_res[:] = LHS-RHS # Target
+
+
+    # # a. Real wage in terms of PNT 
     wTH[:] = WTH/PNT
     wNT[:] = WNT/PNT
 
-    # b. phillips curve tradeable
-    piWTH_plus = lead(piWTH,ss.piWTH)
+    # # b. phillips curve tradeable
+    # piWTH_plus = lead(piWTH,ss.piWTH)
 
-    LHS = piWTH  
+    # LHS = piWTH  
 
-    RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.mu_w*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
-    NKWCT_res[:] = LHS-RHS # Target
+    # RHS = par.kappa_w*(par.varphiTH*(NTH/par.sT)**par.kappa-1/par.mu_w*(1-tau)*wTH*UC_TH_hh) + par.beta*piWTH_plus        
+    # NKWCT_res[:] = LHS-RHS # Target
 
-    # c. phillips curve non-tradeable
-    piWNT_plus = lead(piWNT,ss.piWNT)
+    # # c. phillips curve non-tradeable
+    # piWNT_plus = lead(piWNT,ss.piWNT)
 
-    LHS = piWNT
-    RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.mu_w*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
+    # LHS = piWNT
+    # RHS = par.kappa_w*(par.varphiNT*(NNT/par.sNT)**par.kappa-1/par.mu_w*(1-tau)*wNT*UC_NT_hh) + par.beta*piWNT_plus
     
-    NKWCNT_res[:] = LHS-RHS # Target
+    # NKWCNT_res[:] = LHS-RHS # Target
 
 @nb.njit
 def UIP(par,ini,ss,rF,UIP_res, pi_F_s, E, i,iF_s, r_real, Q):
@@ -357,7 +441,7 @@ def market_clearing(par,ini,ss,
 @nb.njit
 def accounting(par,ini,ss,
                PTH,YTH,PNT,YNT,P,C_hh,G,A,B,ra, adj_TH, adj_NT,
-               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau):
+               GDP,NX,CA,NFA,Walras, E, iF_s, i,EX, YH,W, WNT, WTH,w, NNT, NTH, N, INC, inc, inc_NT, inc_TH, tau, X, E_hh, A_real):
     
 
     # not in use     
@@ -394,3 +478,6 @@ def accounting(par,ini,ss,
     N[:] = NNT+NTH
     INC[:] = (inc_NT + inc_TH)*PNT
     inc[:] = INC/P
+    X[:] = (E_hh*PNT)/P
+    A_real[:] = A/P
+   

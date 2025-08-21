@@ -149,7 +149,7 @@ def obj_ss(x, model, do_print=False):
 
     # Nominal values
     ss.EX = ss.E_hh*ss.PNT # Expenditure
-    ss.A = ss.A_hh*ss.PNT
+    ss.A = ss.A_real =  ss.A_hh*ss.PNT
 
     # d. government bonds (nominal)
     ss.B = ss.A
@@ -199,8 +199,11 @@ def obj_ss(x, model, do_print=False):
     ss.Walras = ss.CA
 
     # g. disutility of labor for NKWPCs
-    par.varphiTH = 1/par.mu_w*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
-    par.varphiNT = 1/par.mu_w*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
+
+    par.varphiTH = 1/par.mu_w*(1-ss.tau)*(ss.WTH/ss.PNT)* (ss.WTH/ss.P)**par.real_wage_motive  *  ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
+    par.varphiNT = 1/par.mu_w*(1-ss.tau)*(ss.WNT/ss.PNT)* (ss.WNT/ss.P)**par.real_wage_motive * ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
+    # par.varphiTH = 1/par.mu_w*(1-ss.tau)*ss.wTH*ss.UC_TH_hh / ((ss.NTH/par.sT)**par.kappa)
+    # par.varphiNT = 1/par.mu_w*(1-ss.tau)*ss.wNT*ss.UC_NT_hh / ((ss.NNT/(1-par.sT))**par.kappa)
 
     # Wage philp curve residuals
     ss.NKWCT_res = 0.0
@@ -220,6 +223,7 @@ def obj_ss(x, model, do_print=False):
     ss.W = par.sT*ss.WTH + (1-par.sT)*ss.WNT # average wage
     ss.w = ss.W/ss.P
     ss.YH = ss.YTH + ss.YNT
+    ss.X = ss.EX/ss.P
 
     return [ss.clearing_YNT] 
     # return [ss.clearing_YNT, ss.NX] #ss.NFA
@@ -253,9 +257,12 @@ def find_ss(model, do_print=False):
     obj_ss(res.x, model)
 
     # c. Initial average expenditure share on tradable goods, used for later calculating cost of living changes
-    par.omega_T = par.nu *ss.E**(-par.epsilon)*ss.p**(par.gamma) # *** Doublet tjek formel
+    par.omega_T = ss.CT/ss.EX # 
+
+
     # Average elicticity of substitution between tradable and non-tradable goods 
     if par.brute_force_C == False:
+        
         par.eta_T_RA = 1 - par.gamma - (par.nu*(ss.PT/ss.PNT)**par.gamma) / ( (ss.EX/ss.PNT)**par.epsilon - par.nu*(ss.PT/ss.PNT)**par.gamma) * (par.gamma - par.epsilon)
     
     elif par.pref == 'homothetic_force':

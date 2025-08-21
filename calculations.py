@@ -131,7 +131,7 @@ def difine_shocks(model, scale=0.03, rho=0.8, plot_shocks=False):
     shock_i = {'di_shock':di_shock}
     shock_PE_i = {'dPE_s':dPE_s, 'di_shock':di_shock}
 
-    return [shock_PE_i, shock_PE_s, shock_forigne_interest, shock_PF_s, shock_PF_s_taylor, shock_PE_PF, shock_PE_PF_taylor, shock_i]
+    return  [shock_PE_s, shock_i] #[shock_PE_i, shock_PE_s, shock_forigne_interest, shock_PF_s, shock_PF_s_taylor, shock_PE_PF, shock_PE_PF_taylor, shock_i]
 
 
 
@@ -169,3 +169,27 @@ def test_model_properties(models):
         for condition in unfulfilled:
             print(f'  {condition}')
 
+
+def shares(model):
+    print(f'Non-tradable share: {model.ss.CNT/(model.ss.CNT+ model.ss.CT)*100:.1f} goal 40')
+    print(f'Energy share: {model.ss.CE/(model.ss.CNT+ model.ss.CT)*100:.1f} goal is 8')
+    # print(f'Import share: {(model.ss.CE+ model.ss.CTF)/(model.ss.E)*100:.1f} goal is ')
+    print(f'Import share of GDP: {(model.ss.CE+ model.ss.CTF)/(model.ss.GDP)*100:.1f} goal is 30')
+    print(f'Government share: {model.ss.G/(model.ss.GDP)*100:.1f} goal is 17')
+    print(f'Government dept share: {model.ss.B/(model.ss.GDP)*100:.1f} goal is 95')
+
+    MPC = np.sum(model.ss.D[:,:,:-1]*(model.ss.e[:,:,1:]-model.ss.e[:,:,:-1])/((1+model.ss.i)*(model.par.a_grid[1:]-model.par.a_grid[:-1])))
+    print(f'MPC: {MPC:.3f}')
+    anual_MPC = 1-(1-MPC)**4  # Annualize the MPC
+    print(f'anual MPC: {anual_MPC:.3f}')
+    print(f'A/income ratio: {model.ss.A_hh/(model.ss.inc_TH/model.par.sT+model.ss.inc_NT/model.par.sNT):.3f}')
+    print(f'Consumption home tradable share: {model.ss.CTH/(model.ss.CNT+ model.ss.CT)*100:.1f}')
+    print(f'Consumption forigne tradable share: {model.ss.CTF/(model.ss.CNT+ model.ss.CT)*100:.1f}')
+
+
+
+    # mean_MPC = np.sum(model.ss.MPC_e * model.ss.D[:,:])
+    # anual_MPC = 1-(1-mean_MPC)**4  # Annualize the MPC
+
+    # print(f'mean MPC: {mean_MPC:6.3f}')
+    # print(f'anual MPC: {anual_MPC:6.3f}')
