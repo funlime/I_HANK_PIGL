@@ -38,10 +38,11 @@ pctp = ['iF_s','piF_s','piF',
 pathlabels = {
 
     'YH': 'Real GDP',
+    'PTH': 'Price of tradable goods ($P_T$)',
     'P': 'CPI $(P)$',
     'W': 'Wages $(W)$',
     'w': 'Real wages $w$',
-    'r_real': 'Real initerest rate $(r)$',
+    'r_real': 'Real interest rate $(r)$',
     'PE':'Price of energy $P_E$',
     'PT': '$P_T$', 
     'PNT': '$P_{NT}$',
@@ -1426,7 +1427,7 @@ def show_states(model, shock, model_alt=None, states=None, T_max=20):
     if states is None:
         states = {
             'Poor': [0, 0, 0],
-            'Rich': [0, 6, 300]
+            'Rich': [0, 6, 10]
         }
 
     # ======= Initialize result dictionaries ========
@@ -1507,8 +1508,10 @@ def show_states(model, shock, model_alt=None, states=None, T_max=20):
     state_colors = {state: next(color_cycle) for state in states}
 
     # --- Fig 1: Real Expenditure Only ---
-    fig_1 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
-    ax = fig_1.add_subplot(1, 2, 1)
+    fig_1 = plt.figure(figsize=(5,5))
+
+
+    ax = fig_1.add_subplot(1, 1, 1)
     for state in states:
         ax.plot(X_diff[state][:T_max], color=state_colors[state], label=state)
     # if model_alt is not None:
@@ -1524,7 +1527,8 @@ def show_states(model, shock, model_alt=None, states=None, T_max=20):
 
 
     # --- Fig 2: Prices and Real Expenditure ---
-    fig_2 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
+    fig_2 = plt.figure(figsize=(10,5))
+    # fig_2 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
     ax = fig_2.add_subplot(1, 2, 1)
 
     ax.plot(Q_diff['Rich'][:T_max], c='black', label='Homothetic', ls='-')
@@ -1559,8 +1563,10 @@ def show_states(model, shock, model_alt=None, states=None, T_max=20):
 
 
     # --- Fig 3: CNT and CT ---
-    fig_3 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
-    ax = fig_3.add_subplot(1, 2, 1)
+    fig_3 = plt.figure(figsize=(10,5))
+    # fig_3 = plt.figure(figsize=(4.3 * 2 / 1.1, 3.6 / 1.2), dpi=100)
+
+    ax = fig_3.add_subplot(1, 2, 2)
     
     for state in states:
         ax.plot(CNT_diff[state][:T_max], color=state_colors[state], label=state)
@@ -1572,7 +1578,7 @@ def show_states(model, shock, model_alt=None, states=None, T_max=20):
     ax.set_xlabel('Quarters')
     ax.set_xticks(np.arange(0, T_max, 4))
 
-    ax = fig_3.add_subplot(1, 2, 2)
+    ax = fig_3.add_subplot(1, 2, 1)
     for state in states:
         ax.plot(CT_diff[state][:T_max], color=state_colors[state], label=state)
     if model_alt is not None:
